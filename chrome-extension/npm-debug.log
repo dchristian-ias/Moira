@@ -1,0 +1,116 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.35
+4 warn package.json DogDiagnostic@0.0.1 No repository field.
+5 verbose readDependencies using package.json deps
+6 verbose install where, deps [ '/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic',
+6 verbose install   [ 'jquery',
+6 verbose install     'underscore',
+6 verbose install     'backbone',
+6 verbose install     'backbone.marionette',
+6 verbose install     'backbone.wreqr',
+6 verbose install     'http-server',
+6 verbose install     'browserify-shim' ] ]
+7 info preinstall DogDiagnostic@0.0.1
+8 verbose readDependencies using package.json deps
+9 verbose already installed skipping backbone@^1.1.2 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+10 verbose already installed skipping backbone.marionette@^2.3.1 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+11 verbose already installed skipping backbone.wreqr@^1.3.1 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+12 verbose already installed skipping http-server@0.8.5 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+13 verbose already installed skipping browserify-shim@^3.8.2 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+14 verbose already installed skipping jquery@^2.1.3 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+15 verbose already installed skipping underscore@^1.7.0 /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+16 silly resolved []
+17 info build /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic
+18 verbose linkStuff [ false, false, false, '/Users/moshe/IntelliJ/dogdiaf' ]
+19 info linkStuff DogDiagnostic@0.0.1
+20 verbose linkBins DogDiagnostic@0.0.1
+21 verbose linkMans DogDiagnostic@0.0.1
+22 verbose rebuildBundles DogDiagnostic@0.0.1
+23 verbose rebuildBundles [ '.bin',
+23 verbose rebuildBundles   'backbone',
+23 verbose rebuildBundles   'backbone.marionette',
+23 verbose rebuildBundles   'backbone.wreqr',
+23 verbose rebuildBundles   'browserify',
+23 verbose rebuildBundles   'browserify-shim',
+23 verbose rebuildBundles   'http-server',
+23 verbose rebuildBundles   'jquery',
+23 verbose rebuildBundles   'underscore' ]
+24 verbose rebuild bundle /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/browserify
+25 info build /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/browserify
+26 info preinstall browserify@8.1.3
+27 verbose linkStuff [ false,
+27 verbose linkStuff   false,
+27 verbose linkStuff   false,
+27 verbose linkStuff   '/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules' ]
+28 info linkStuff browserify@8.1.3
+29 verbose linkBins browserify@8.1.3
+30 verbose link bins [ { browserify: 'bin/cmd.js' },
+30 verbose link bins   '/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/.bin',
+30 verbose link bins   false ]
+31 verbose linkMans browserify@8.1.3
+32 verbose rebuildBundles browserify@8.1.3
+33 verbose rebuildBundles [ '.bin',
+33 verbose rebuildBundles   'JSONStream',
+33 verbose rebuildBundles   'assert',
+33 verbose rebuildBundles   'browser-pack',
+33 verbose rebuildBundles   'browser-resolve',
+33 verbose rebuildBundles   'browserify-zlib',
+33 verbose rebuildBundles   'buffer',
+33 verbose rebuildBundles   'builtins',
+33 verbose rebuildBundles   'commondir',
+33 verbose rebuildBundles   'concat-stream',
+33 verbose rebuildBundles   'console-browserify',
+33 verbose rebuildBundles   'constants-browserify',
+33 verbose rebuildBundles   'crypto-browserify',
+33 verbose rebuildBundles   'deep-equal',
+33 verbose rebuildBundles   'defined',
+33 verbose rebuildBundles   'deps-sort',
+33 verbose rebuildBundles   'domain-browser',
+33 verbose rebuildBundles   'duplexer2',
+33 verbose rebuildBundles   'events',
+33 verbose rebuildBundles   'glob',
+33 verbose rebuildBundles   'http-browserify',
+33 verbose rebuildBundles   'https-browserify',
+33 verbose rebuildBundles   'inherits',
+33 verbose rebuildBundles   'insert-module-globals',
+33 verbose rebuildBundles   'isarray',
+33 verbose rebuildBundles   'labeled-stream-splicer',
+33 verbose rebuildBundles   'module-deps',
+33 verbose rebuildBundles   'os-browserify',
+33 verbose rebuildBundles   'parents',
+33 verbose rebuildBundles   'path-browserify',
+33 verbose rebuildBundles   'process',
+33 verbose rebuildBundles   'punycode',
+33 verbose rebuildBundles   'querystring-es3',
+33 verbose rebuildBundles   'readable-stream',
+33 verbose rebuildBundles   'resolve',
+33 verbose rebuildBundles   'shallow-copy',
+33 verbose rebuildBundles   'shasum',
+33 verbose rebuildBundles   'shell-quote',
+33 verbose rebuildBundles   'stream-browserify',
+33 verbose rebuildBundles   'string_decoder',
+33 verbose rebuildBundles   'subarg',
+33 verbose rebuildBundles   'syntax-error',
+33 verbose rebuildBundles   'through2',
+33 verbose rebuildBundles   'timers-browserify',
+33 verbose rebuildBundles   'tty-browserify',
+33 verbose rebuildBundles   'umd',
+33 verbose rebuildBundles   'url',
+33 verbose rebuildBundles   'util',
+33 verbose rebuildBundles   'vm-browserify',
+33 verbose rebuildBundles   'xtend' ]
+34 error Error: ENOENT, chmod '/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/browserify/bin/cmd.js'
+35 error If you need help, you may report this *entire* log,
+35 error including the npm and node versions, at:
+35 error     <http://github.com/npm/npm/issues>
+36 error System Darwin 14.5.0
+37 error command "node" "/usr/local/bin/npm" "install"
+38 error cwd /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/chrome-extension
+39 error node -v v0.10.35
+40 error npm -v 1.4.28
+41 error path /Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/browserify/bin/cmd.js
+42 error code ENOENT
+43 error errno 34
+44 verbose exit [ 34, true ]
