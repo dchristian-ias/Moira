@@ -5,7 +5,7 @@
 var Marionette = require('backbone.marionette');
 var NetworkCalls = require('./NetworkCalls');
 var ScreenEvents = require('./ScreenEvents');
-var Bootstrapper = require('./ScreenEvents');
+var Bootstrapper = require('./Bootstrapper');
 var CumulativeStates = require('./CumulativeStates');
 var DetectionResults = require('./DetectionResults');
 
@@ -27,7 +27,7 @@ var Ad = Backbone.Model.extend({
 
         this.models = {
             detectionResults: new DetectionResults({}),
-            networkCalls: new NetworkCalls({}),
+            networkCalls: new NetworkCalls(),
             // Passing in the `asid` because this model will trigger events
             // on which Ad has changed `viewState`. This provides support 
             // for the beacon in-view markers.

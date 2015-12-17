@@ -34,7 +34,7 @@ var AdCollection = Backbone.Collection.extend({
 
 module.exports = AdCollection;
 
-},{"../models/Ad":5,"backbone":11}],3:[function(require,module,exports){
+},{"../models/Ad":5,"backbone":12}],3:[function(require,module,exports){
 /** 
  * @module App
  */
@@ -90,7 +90,7 @@ var App = Marionette.Application.extend({
 });
 
 module.exports = App;
-},{"../collections/AdCollection":2,"../views/AdListCollection":14,"../views/AppLayout":15,"backbone.marionette":10,"jquery":12}],4:[function(require,module,exports){
+},{"../collections/AdCollection":2,"../views/AdListCollection":15,"../views/AppLayout":16,"backbone.marionette":11,"jquery":13}],4:[function(require,module,exports){
 /** 
  * @module addons
  */
@@ -142,7 +142,7 @@ $.fn.drags = function(opt) {
 }
 module.export = $;
 
-},{"jquery":12}],5:[function(require,module,exports){
+},{"jquery":13}],5:[function(require,module,exports){
 /**
  * @module Ad
  */
@@ -150,7 +150,7 @@ module.export = $;
 var Marionette = require('backbone.marionette');
 var NetworkCalls = require('./NetworkCalls');
 var ScreenEvents = require('./ScreenEvents');
-var Bootstrapper = require('./ScreenEvents');
+var Bootstrapper = require('./Bootstrapper');
 var CumulativeStates = require('./CumulativeStates');
 var DetectionResults = require('./DetectionResults');
 
@@ -172,7 +172,7 @@ var Ad = Backbone.Model.extend({
 
         this.models = {
             detectionResults: new DetectionResults({}),
-            networkCalls: new NetworkCalls({}),
+            networkCalls: new NetworkCalls(),
             // Passing in the `asid` because this model will trigger events
             // on which Ad has changed `viewState`. This provides support 
             // for the beacon in-view markers.
@@ -253,7 +253,17 @@ var Ad = Backbone.Model.extend({
 });
 
 module.exports = Ad;
-},{"./CumulativeStates":6,"./DetectionResults":7,"./NetworkCalls":8,"./ScreenEvents":9,"backbone.marionette":10}],6:[function(require,module,exports){
+},{"./Bootstrapper":6,"./CumulativeStates":7,"./DetectionResults":8,"./NetworkCalls":9,"./ScreenEvents":10,"backbone.marionette":11}],6:[function(require,module,exports){
+
+var Backbone = require('backbone');
+
+/** This is a Backbone Model that will store cumulative-state data. */
+var Bootstrapper = Backbone.Model.extend({
+});
+
+module.exports = Bootstrapper;
+
+},{"backbone":12}],7:[function(require,module,exports){
 /**
  * @module CumulativeStates
  */
@@ -282,7 +292,7 @@ var CumulativeStates = Backbone.Model.extend({
 
 module.exports = CumulativeStates;
 
-},{"backbone":11}],7:[function(require,module,exports){
+},{"backbone":12}],8:[function(require,module,exports){
 /**
  * @module DetectionResults
  */
@@ -301,7 +311,7 @@ var DetectionResults = Backbone.Model.extend({
 
 module.exports = DetectionResults;
 
-},{"backbone":11}],8:[function(require,module,exports){
+},{"backbone":12}],9:[function(require,module,exports){
 /**
 * @module NetworkCalls
 */
@@ -313,7 +323,7 @@ var NetworkCalls = Backbone.Collection.extend({
 });
 module.exports = NetworkCalls;
 
-},{"backbone":11}],9:[function(require,module,exports){
+},{"backbone":12}],10:[function(require,module,exports){
 /**
  * @module ScreenEvents
  */
@@ -347,7 +357,7 @@ var ScreenEvents = Backbone.Model.extend({
 
 module.exports = ScreenEvents;
 
-},{"backbone":11}],10:[function(require,module,exports){
+},{"backbone":12}],11:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -381,7 +391,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":11,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":13}],11:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],12:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -394,7 +404,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":13}],12:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],13:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 /*! jQuery v2.1.4 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
@@ -407,7 +417,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.8.3
@@ -421,7 +431,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var Marionette = require('backbone.marionette');
 var NetworkCallComposite = require('../views/NetworkCallComposite');
 
@@ -439,7 +449,7 @@ var SmallAdView = Marionette.LayoutView.extend({
     },
     onRender: function(){
       this.dtDisplay.show(new NetworkCallComposite({
-          collection:this.model.models.networkCalls
+          collection: this.model.models.networkCalls,
       }))
     },
     setIds:function(){
@@ -475,7 +485,7 @@ var AdListCollection = Marionette.CollectionView.extend({
 });
 
 module.exports = AdListCollection;
-},{"../views/NetworkCallComposite":16,"../views/templates":17,"backbone.marionette":10}],15:[function(require,module,exports){
+},{"../views/NetworkCallComposite":17,"../views/templates":18,"backbone.marionette":11}],16:[function(require,module,exports){
 /** 
  * @module AppLayout
  */
@@ -495,55 +505,55 @@ var AppLayout = Marionette.LayoutView.extend({
 
 module.exports = AppLayout;
 
-},{"../views/templates":17,"backbone.marionette":10}],16:[function(require,module,exports){
+},{"../views/templates":18,"backbone.marionette":11}],17:[function(require,module,exports){
 var Marionette = require('backbone.marionette');
 
 var NetworkCallItemView = Marionette.ItemView.extend({
     tagName:'tr',
     template:require('../views/templates').networkCallView,
-    templateHelpers:{
-        callType:function(){
-            var lookup = {
-                'a':"Ad Talk",
-                'b':"Diagnostic information",
-                'i':"Presence of third party",
-                'l':"Ad Billable because of size",
-                'v':"Full complement of video events",
-                'p':"In View to MRC spec",
-                'pf':"Ad is fully in view",
-                'qf':"Fully in view at quartile",
-                's': "Fraud measurements",
-                'vh': "Fraud measurements",
-                't':"Would be in view if not for focus",
-                'u':"Final data collection",
-                'v':"Non geometric measurement technique ready"
-            };
-            return lookup[this.callType];
-        },
-        callTime:function(){
-            var result,
-                pingTime = this.pingTime;
-            if(pingTime >= 0) {
-                result = pingTime;
-            } else if (pingTime.indexOf('.') !== -1) {
-                result = pingTime.slice('.')[1];
-            } else {
-                result = 'na'
-            }
-            return result;
+    templateHelpers:function(){
+        var callType, pingTime;
+        var lookup = {
+            'a':"Ad Talk",
+            'b':"Diagnostic information",
+            'i':"Presence of third party",
+            'l':"Ad Billable because of size",
+            'v':"Full complement of video events",
+            'p':"In View to MRC spec",
+            'pf':"Ad is fully in view",
+            'qf':"Fully in view at quartile",
+            's': "Fraud measurements",
+            'vh': "Fraud measurements",
+            't':"Would be in view if not for focus",
+            'u':"Final data collection",
+            'v':"Non geometric measurement technique ready"
+        };
+
+        pingTime = this.model.get('pingTime');
+        if(pingTime >= 0) {
+            callTime = pingTime;
+        } else if (pingTime.indexOf('.') !== -1) {
+            callTime = pingTime.slice('.')[1];
+        } else {
+            callTime = 'na'
         }
+
+        return  {
+            callTime:callTime,
+            callType:lookup[this.model.get('callType')]
+        };
     }
 });
 
 var NetworkCallCompositeView = Marionette.CompositeView.extend({
     tagName:'table',
-    template:require('../views/templates').networkCallView,
+    template:require('../views/templates').networkCallComposite,
     childView:NetworkCallItemView,
     childViewContainer:'tbody'
 });
 
 module.exports = NetworkCallCompositeView;
-},{"../views/templates":17,"backbone.marionette":10}],17:[function(require,module,exports){
+},{"../views/templates":18,"backbone.marionette":11}],18:[function(require,module,exports){
 /**
  * @module templates
  */
@@ -554,11 +564,11 @@ module.exports = {
     'mainContainer': _.template('<H1>INTEGRAL TAGS</H1><div id="ads-found-container"></div>'),
     'smallAdView': _.template('<span class="idType"><%= tagIdType %></span>:<span class="tagId"><%= tagId %></span> <span> <%= id %></span>' +
     '   <div class="dt-calls"></div>'),
-    'networkCallView': _.template('<td><%=callType() %></td><td><%=callTime() %></td>'),
+    'networkCallView': _.template('<td><%=callType %></td><td><%=callTime %></td>'),
     'networkCallComposite':_.template('<thead>' +
     '       <tr><th>Call Type</th><th>Call Number</th></tr>' +
     '   </thead>' +
     '    <tbody class="dt-call-list"></tbody>')
 };
 
-},{"underscore":13}]},{},[1]);
+},{"underscore":14}]},{},[1]);

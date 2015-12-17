@@ -15,7 +15,7 @@ var SmallAdView = Marionette.LayoutView.extend({
     },
     onRender: function(){
       this.dtDisplay.show(new NetworkCallComposite({
-          collection:this.model.models.networkCalls
+          collection: this.model.models.networkCalls,
       }))
     },
     setIds:function(){
