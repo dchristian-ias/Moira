@@ -11,10 +11,12 @@
   }],
   "browser_action": {
     "default_icon": "dogD.png",
-    "default_popup": "popup.html"
+    "default_popup": "settings.html"
   },
   "background": {
-    "scripts": ["proxy.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "permissions": [
     "activeTab",
