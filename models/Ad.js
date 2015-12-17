@@ -3,18 +3,18 @@
  */
 
 var Marionette = require('backbone.marionette');
-var NetworkCalls = require('../models/NetworkCalls');
-var ScreenEvents = require('../models/ScreenEvents');
-var CumulativeStates = require('../models/CumulativeStates');
-var DetectionResults = require('../models/DetectionResults');
-var modelListener = require('./modellistener');
+var NetworkCalls = require('./NetworkCalls');
+var ScreenEvents = require('./ScreenEvents');
+var CumulativeStates = require('./CumulativeStates');
+var DetectionResults = require('./DetectionResults');
+var modelListener = require('../controllers/modellistener');
 
 /**
  *  Respresents a unique IAS tag.
  *  @param {object} options - Contains initial Ad data and postMessage source.
  *  @returns {constructor} - Marionette Object Constructor.
  */
-var Ad = Marionette.Object.extend({
+var Ad = Backbone.Model.extend({
     initialize: function(options) {
         this.data = options.data;
         this.postSource = options.postSource;

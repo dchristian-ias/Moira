@@ -4,6 +4,7 @@
  
 var $ = require('jquery');
 
+
 // drags() will be exposed on the $ object.
 $.fn.drags = function(opt) {
 
@@ -46,3 +47,4 @@ $.fn.drags = function(opt) {
         }
     });
 }
+module.export = $;

@@ -3,7 +3,6 @@
  */
 
 var Backbone = require('backbone');
-var messageBus = require ('../controllers/messageBus');
 
 /** This is a Backbone Model that will store screen-event data. */
 var ScreenEvents = Backbone.Model.extend({

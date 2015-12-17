@@ -5,11 +5,8 @@ var _ = require('underscore');
 
 module.exports = {
     // UI templates.
-    'mainContainer': _.template('<div id="ads-found-container"></div>' +
-    '<div id="ads-listing-container"></div>' +
-    '<div id="data-display-container"></div>'),
-
-    'adCount': _.template('<%= adCount %> AD(S) FOUND'),
+    'mainContainer': _.template('<H1>INTEGRAL TAGS</H1><div id="ads-found-container"></div>'),
+    'smallAdView': _.template('<%= id %>'),
 
     'dataSelection': _.template('<div id="data-model-selection-container">' +
     '	<div class="data-model-selection-wrap">' +

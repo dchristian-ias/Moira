@@ -3,160 +3,83 @@
  * @module MainDog
  */
 
-var $ = require('jquery');
+//hopefully this makes the plugin avaialable
+var draggable = require('./extplugins/jquery-draggable');
+
 var App = require('./controllers/App');
+new App().start();
 
-// Add the widget container to the DOM.
-var $container = $('<iframe/>', {
-    id: 'dog-widget-container',
-    scrolling: 'no',
-    frameBorder: 0
-});
 
-// In order to throw the `!important` CSS specificity, add styling to the 
-// DOM node itself, not the jQuery object. 
-$container[0].style.cssText = 'position:absolute !important;height:200px !important;width:600px !important;opacity:0.9 !important;border:3px solid black !important;border-radius:25px !important;cursor:move !important;background-color:rgb(32,194,255) !important;z-index:1000000000 !important;top:0; left:0';
 
-$container.on('load', function() {
 
-    $(this).contents().find('head').append("<link rel='stylesheet' href='https://st.adsafecontrol.com/utilities/DogDiagnostic/views/style/style.css' type='text/css'/>");
-
-    // Marionette.Application that stores unique Ad instances.
-    var app = new App();
-
-    $(window).on('message', function(evt) {
-        var data;
-
-        try {
-            data = JSON.parse(evt.originalEvent.data);
-        } catch (e) {};
-
-        if (data && data.asid) {
-            app.createAd(data, evt.originalEvent.source);
-        }
-    });
-    // Trigger the bootstrapper to re-postMessage the missed postMessages. 
-    window.postMessage('DOGDIAGNOSTICREADY', '*');
-});
-
-$('body').prepend($container);
-
-},{"./controllers/App":4,"jquery":17}],2:[function(require,module,exports){
+},{"./controllers/App":3,"./extplugins/jquery-draggable":5}],2:[function(require,module,exports){
 /**
 * @module AdCollection
 */
 
 var Backbone = require('backbone');
-var messageBus = require ('../controllers/messageBus');
-var MetaAdModel = require('../models/MetaAdModel');
+var AdModel = require('../models/Ad');
 
 /** This is a Backbone Collection that will store meta admodels. */
 var AdCollection = Backbone.Collection.extend({
-	model: MetaAdModel,
-
-	initialize: function() {
-		messageBus.vent.on('ad:added', this.addModelToSelf, this);
-	},
-
-	addModelToSelf: function(Ad) {
-		this.add(new MetaAdModel({'ad':Ad, 'id': Ad.data.asid, 'active': false}));
-	}
+	model:AdModel
 });
 
 module.exports = AdCollection;
 
-},{"../controllers/messageBus":5,"../models/MetaAdModel":11,"backbone":16}],3:[function(require,module,exports){
-/**
- * @module Ad
- */
-
-var Marionette = require('backbone.marionette');
-var NetworkCalls = require('../models/NetworkCalls');
-var ScreenEvents = require('../models/ScreenEvents');
-var CumulativeStates = require('../models/CumulativeStates');
-var DetectionResults = require('../models/DetectionResults');
-var modelListener = require('./modellistener');
-
-/**
- *  Respresents a unique IAS tag.
- *  @param {object} options - Contains initial Ad data and postMessage source.
- *  @returns {constructor} - Marionette Object Constructor.
- */
-var Ad = Marionette.Object.extend({
-    initialize: function(options) {
-        this.data = options.data;
-        this.postSource = options.postSource;
-
-        this.models = {
-            detectionResults: new DetectionResults({}),
-            networkCalls: new NetworkCalls({}),
-            // Passing in the `asid` because this model will trigger events
-            // on which Ad has changed `viewState`. This provides support 
-            // for the beacon in-view markers.
-            screenEvents: new ScreenEvents({'id':this.data.asid}),
-            cumulativeStates: new CumulativeStates({})
-        };
-
-        this.initModelListener();
-        this.setModels();
-    },
-
-    // Initialize listener for future channel updates as soon as possible.
-    initModelListener: function() {
-        modelListener.listenOnChannelsForChanges(this.models, this.data.asid);
-    },
-
-    // On instantiation we will set whatever models we can.
-    setModels: function() {
-        for (modelName in this.models) {
-            if (this.models.hasOwnProperty(modelName)) {
-                if (this.data.channel === modelName) {
-                    this.models[modelName].set(this.data.data);
-                }
-            }
-        }
-    }
-});
-
-module.exports = Ad;
-},{"../models/CumulativeStates":9,"../models/DetectionResults":10,"../models/NetworkCalls":12,"../models/ScreenEvents":13,"./modellistener":6,"backbone.marionette":14}],4:[function(require,module,exports){
+},{"../models/Ad":6,"backbone":12}],3:[function(require,module,exports){
 /** 
  * @module App
  */
  
 var Marionette = require('backbone.marionette');
-var messageBus = require ('../controllers/messageBus');
-var Ad = require('./Ad');
+var $ = require('jquery');
 var AppLayout = require('../views/AppLayout');
+var AdListCollectionView = require('../views/AdListCollection');
+var AdCollection = require('../collections/AdCollection');
 
 var App = Marionette.Application.extend({
-	_ads: {},
-
+	ads:new AdCollection(),
 	createAd: function(data, source) {
-		if (!this._ads[data.asid]) {
-			this._ads[data.asid] = new Ad({'data': data, 'postSource': source});
-			messageBus.vent.trigger('ad:added', this._ads[data.asid]);
+		//todo use backbones collection lookup of ids, instead of replicating
+		if (!this.ads.findWhere({id:data.asid})) {
+			this.ads.add({
+				'id': data.asid,
+				'data': data,
+				'postSource': source
+			});
+		}
+
+		this.applayout.render();
+		if(this.ads.length === 1) {
+			this.applayout.adList.show(new AdListCollectionView({
+				collection:this.ads
+			}));
 		}
 	},
 
 	initialize: function() {
-		var applayout = new AppLayout({});
-		applayout.render();
+		this.applayout = new AppLayout({});
+	},
+	onStart: function(){
+		$(window).on('message', function(evt) {
+			var data;
+
+			try {
+				data = JSON.parse(evt.originalEvent.data);
+			} catch (e) {}
+
+			if (data && data.asid) {
+				this.createAd(data, evt.originalEvent.source);
+			}
+		}.bind(this));
+		// Trigger the bootstrapper to re-postMessage the missed postMessages.
+		window.postMessage('DOGDIAGNOSTICREADY', '*');
 	}
 });
 
 module.exports = App;
-},{"../controllers/messageBus":5,"../views/AppLayout":22,"./Ad":3,"backbone.marionette":14}],5:[function(require,module,exports){
-/** 
- * @module messageBus
- */
- 
-var Wreqr = require('backbone.wreqr');
-
-// Future iterations can export other Wreqr objects.
-module.exports.vent = new Wreqr.EventAggregator();
-
-},{"backbone.wreqr":15}],6:[function(require,module,exports){
+},{"../collections/AdCollection":2,"../views/AdListCollection":15,"../views/AppLayout":16,"backbone.marionette":11,"jquery":13}],4:[function(require,module,exports){
 /**
  * @module modelListener
  */
@@ -186,12 +109,13 @@ var modelListener = {
 
 module.exports = modelListener;
 
-},{"jquery":17}],7:[function(require,module,exports){
+},{"jquery":13}],5:[function(require,module,exports){
 /** 
  * @module addons
  */
  
 var $ = require('jquery');
+
 
 // drags() will be exposed on the $ object.
 $.fn.drags = function(opt) {
@@ -235,33 +159,63 @@ $.fn.drags = function(opt) {
         }
     });
 }
+module.export = $;
 
-},{"jquery":17}],8:[function(require,module,exports){
+},{"jquery":13}],6:[function(require,module,exports){
 /**
-* @module AdCount
-*/
+ * @module Ad
+ */
 
-var Backbone = require('backbone');
-var messageBus = require ('../controllers/messageBus');
+var Marionette = require('backbone.marionette');
+var NetworkCalls = require('./NetworkCalls');
+var ScreenEvents = require('./ScreenEvents');
+var CumulativeStates = require('./CumulativeStates');
+var DetectionResults = require('./DetectionResults');
+var modelListener = require('../controllers/modellistener');
 
-/** This is a Backbone Model that will store ad count data. */
-var AdCount = Backbone.Model.extend({
-	defaults : {
-		'adCount' : 0
-	},
+/**
+ *  Respresents a unique IAS tag.
+ *  @param {object} options - Contains initial Ad data and postMessage source.
+ *  @returns {constructor} - Marionette Object Constructor.
+ */
+var Ad = Backbone.Model.extend({
+    initialize: function(options) {
+        this.data = options.data;
+        this.postSource = options.postSource;
 
-	incrementAndSetAdCount: function(ad) {
-		this.set('adCount', this.attributes.adCount + 1);
-	},
+        this.models = {
+            detectionResults: new DetectionResults({}),
+            networkCalls: new NetworkCalls({}),
+            // Passing in the `asid` because this model will trigger events
+            // on which Ad has changed `viewState`. This provides support 
+            // for the beacon in-view markers.
+            screenEvents: new ScreenEvents({'id':this.data.asid}),
+            cumulativeStates: new CumulativeStates({})
+        };
 
-	initialize: function() {
-		messageBus.vent.on('ad:added', this.incrementAndSetAdCount, this);
-	}
+        this.initModelListener();
+        this.setModels();
+    },
+
+    // Initialize listener for future channel updates as soon as possible.
+    initModelListener: function() {
+        modelListener.listenOnChannelsForChanges(this.models, this.data.asid);
+    },
+
+    // On instantiation we will set whatever models we can.
+    setModels: function() {
+        for (modelName in this.models) {
+            if (this.models.hasOwnProperty(modelName)) {
+                if (this.data.channel === modelName) {
+                    this.models[modelName].set(this.data.data);
+                }
+            }
+        }
+    }
 });
 
-module.exports = AdCount;
-
-},{"../controllers/messageBus":5,"backbone":16}],9:[function(require,module,exports){
+module.exports = Ad;
+},{"../controllers/modellistener":4,"./CumulativeStates":7,"./DetectionResults":8,"./NetworkCalls":9,"./ScreenEvents":10,"backbone.marionette":11}],7:[function(require,module,exports){
 /**
  * @module CumulativeStates
  */
@@ -290,7 +244,7 @@ var CumulativeStates = Backbone.Model.extend({
 
 module.exports = CumulativeStates;
 
-},{"backbone":16}],10:[function(require,module,exports){
+},{"backbone":12}],8:[function(require,module,exports){
 /**
  * @module DetectionResults
  */
@@ -309,19 +263,7 @@ var DetectionResults = Backbone.Model.extend({
 
 module.exports = DetectionResults;
 
-},{"backbone":16}],11:[function(require,module,exports){
-/**
-* @module MetaAdModel
-*/
-
-var Backbone = require('backbone');
-
-/** This is a Backbone Model that will store ad model data. */
-var MetaAdModel = Backbone.Model.extend({ });
-
-module.exports = MetaAdModel;
-
-},{"backbone":16}],12:[function(require,module,exports){
+},{"backbone":12}],9:[function(require,module,exports){
 /**
 * @module NetworkCalls
 */
@@ -422,13 +364,12 @@ var NetworkCalls = Backbone.Model.extend({
 
 module.exports = NetworkCalls;
 
-},{"backbone":16}],13:[function(require,module,exports){
+},{"backbone":12}],10:[function(require,module,exports){
 /**
  * @module ScreenEvents
  */
 
 var Backbone = require('backbone');
-var messageBus = require ('../controllers/messageBus');
 
 /** This is a Backbone Model that will store screen-event data. */
 var ScreenEvents = Backbone.Model.extend({
@@ -465,7 +406,7 @@ var ScreenEvents = Backbone.Model.extend({
 
 module.exports = ScreenEvents;
 
-},{"../controllers/messageBus":5,"backbone":16}],14:[function(require,module,exports){
+},{"backbone":12}],11:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -499,30 +440,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":16,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":17,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":18}],15:[function(require,module,exports){
-(function (global){
-
-; Backbone = global.Backbone = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js");
-; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
-// Backbone.Wreqr (Backbone.Marionette)
-// ----------------------------------
-// v1.3.5
-//
-// Copyright (c)2015 Derick Bailey, Muted Solutions, LLC.
-// Distributed under MIT license
-//
-// http://github.com/marionettejs/backbone.wreqr
-
-
-
-!function(a,b){if("function"==typeof define&&define.amd)define(["backbone","underscore"],function(a,c){return b(a,c)});else if("undefined"!=typeof exports){var c=__browserify_shim_require__("backbone"),d=__browserify_shim_require__("underscore");module.exports=b(c,d)}else b(a.Backbone,a._)}(this,function(a,b){"use strict";var c=a.Wreqr,d=a.Wreqr={};return a.Wreqr.VERSION="1.3.5",a.Wreqr.noConflict=function(){return a.Wreqr=c,this},d.Handlers=function(a,b){var c=function(a){this.options=a,this._wreqrHandlers={},b.isFunction(this.initialize)&&this.initialize(a)};return c.extend=a.Model.extend,b.extend(c.prototype,a.Events,{setHandlers:function(a){b.each(a,function(a,c){var d=null;b.isObject(a)&&!b.isFunction(a)&&(d=a.context,a=a.callback),this.setHandler(c,a,d)},this)},setHandler:function(a,b,c){var d={callback:b,context:c};this._wreqrHandlers[a]=d,this.trigger("handler:add",a,b,c)},hasHandler:function(a){return!!this._wreqrHandlers[a]},getHandler:function(a){var b=this._wreqrHandlers[a];if(b)return function(){return b.callback.apply(b.context,arguments)}},removeHandler:function(a){delete this._wreqrHandlers[a]},removeAllHandlers:function(){this._wreqrHandlers={}}}),c}(a,b),d.CommandStorage=function(){var c=function(a){this.options=a,this._commands={},b.isFunction(this.initialize)&&this.initialize(a)};return b.extend(c.prototype,a.Events,{getCommands:function(a){var b=this._commands[a];return b||(b={command:a,instances:[]},this._commands[a]=b),b},addCommand:function(a,b){var c=this.getCommands(a);c.instances.push(b)},clearCommands:function(a){var b=this.getCommands(a);b.instances=[]}}),c}(),d.Commands=function(a,b){return a.Handlers.extend({storageType:a.CommandStorage,constructor:function(b){this.options=b||{},this._initializeStorage(this.options),this.on("handler:add",this._executeCommands,this),a.Handlers.prototype.constructor.apply(this,arguments)},execute:function(a){a=arguments[0];var c=b.rest(arguments);this.hasHandler(a)?this.getHandler(a).apply(this,c):this.storage.addCommand(a,c)},_executeCommands:function(a,c,d){var e=this.storage.getCommands(a);b.each(e.instances,function(a){c.apply(d,a)}),this.storage.clearCommands(a)},_initializeStorage:function(a){var c,d=a.storageType||this.storageType;c=b.isFunction(d)?new d:d,this.storage=c}})}(d,b),d.RequestResponse=function(a,b){return a.Handlers.extend({request:function(a){return this.hasHandler(a)?this.getHandler(a).apply(this,b.rest(arguments)):void 0}})}(d,b),d.EventAggregator=function(a,b){var c=function(){};return c.extend=a.Model.extend,b.extend(c.prototype,a.Events),c}(a,b),d.Channel=function(c){var d=function(b){this.vent=new a.Wreqr.EventAggregator,this.reqres=new a.Wreqr.RequestResponse,this.commands=new a.Wreqr.Commands,this.channelName=b};return b.extend(d.prototype,{reset:function(){return this.vent.off(),this.vent.stopListening(),this.reqres.removeAllHandlers(),this.commands.removeAllHandlers(),this},connectEvents:function(a,b){return this._connect("vent",a,b),this},connectCommands:function(a,b){return this._connect("commands",a,b),this},connectRequests:function(a,b){return this._connect("reqres",a,b),this},_connect:function(a,c,d){if(c){d=d||this;var e="vent"===a?"on":"setHandler";b.each(c,function(c,f){this[a][e](f,b.bind(c,d))},this)}}}),d}(d),d.radio=function(a,b){var c=function(){this._channels={},this.vent={},this.commands={},this.reqres={},this._proxyMethods()};b.extend(c.prototype,{channel:function(a){if(!a)throw new Error("Channel must receive a name");return this._getChannel(a)},_getChannel:function(b){var c=this._channels[b];return c||(c=new a.Channel(b),this._channels[b]=c),c},_proxyMethods:function(){b.each(["vent","commands","reqres"],function(a){b.each(d[a],function(b){this[a][b]=e(this,a,b)},this)},this)}});var d={vent:["on","off","trigger","once","stopListening","listenTo","listenToOnce"],commands:["execute","setHandler","setHandlers","removeHandler","removeAllHandlers"],reqres:["request","setHandler","setHandlers","removeHandler","removeAllHandlers"]},e=function(a,c,d){return function(e){var f=a._getChannel(e)[c];return f[d].apply(f,b.rest(arguments))}};return new c}(d,b),a.Wreqr});
-//# sourceMappingURL=backbone.wreqr.map
-; browserify_shim__define__module__export__(typeof Backbone.Wreqr != "undefined" ? Backbone.Wreqr : window.Backbone.Wreqr);
-
-}).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":16}],16:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],12:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -535,7 +453,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":17,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":18}],17:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],13:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 /*! jQuery v2.1.4 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
@@ -548,7 +466,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.8.3
@@ -562,267 +480,41 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(require,module,exports){
-/** 
- * @module AdModelItem
- */
- 
+},{}],15:[function(require,module,exports){
 var Marionette = require('backbone.marionette');
-var templates = require('../views/templates');
-
-var TemplateMap = {
-	'S': templates.screenEvents,
-	'C': templates.cumulativeStates,
-	'D': templates.detectionResults,
-	'N': templates.networkCalls
-};
-
-var AdModelItem = Marionette.ItemView.extend({
-	tagName: 'ul',
-
-	// Serve the correct view for selected model.
-	template: function(attributes) {
-		var viewKey = attributes.viewId;
-		if (TemplateMap[viewKey]) { 
-			return TemplateMap[viewKey]({attributes: attributes}); 
-		} else {
-			throw new Error('viewKey - Does Not Exist.');
-		}
-	},
-
-	modelEvents: {
-		'change': 'render'
-	}
+var SmallAdView = Marionette.ItemView.extend({
+    tagName:'li',
+    template:require('../views/templates').smallAdView
 });
 
-module.exports = AdModelItem;
-
-},{"../views/templates":25,"backbone.marionette":14}],20:[function(require,module,exports){
-/**
- * @module AdsDisplayCollection
- */
-
-var Marionette = require('backbone.marionette');
-var messageBus = require ('../controllers/messageBus');
-var MetaAdModelItem = require('../views/MetaAdModelItem');
-
-var AdsDisplayCollection = Marionette.CollectionView.extend({
-    initialize: function() {
-        messageBus.vent.on('inViewBeaconUpdate', this.inViewBeaconUpdate, this);
-    },
-
-    el: '<ol/>',
-
-    childView: MetaAdModelItem,
-
-    childEvents: {
-        'selected': 'selected'
-    },
-
-    inViewBeaconMap: {
-        inView: 'https://st.adsafecontrol.com/utilities/DogDiagnostic/assets/green_square.png',
-        notInView: 'https://st.adsafecontrol.com/utilities/DogDiagnostic/assets/red_square.png'
-    },
-
-    inViewBeaconUpdate: function(asid, viewState) {
-        if (viewState === 'inView') {
-            this.$el.find('#' + asid).css('list-style-image', 'url("' + this.inViewBeaconMap.inView + '")');
-        } else {
-            this.$el.find('#' + asid).css('list-style-image', 'url("' + this.inViewBeaconMap.notInView + '")');
-        }
-    },
-
-    // Adding this method as a bug fix.
-    // It seems that the collection creates a phantom model.
-    // TODO: research this more and resolve it.
-    addChild: function(child, ChildView, index){
-        if (child.attributes.id) {
-            Backbone.Marionette.CollectionView.prototype.addChild.apply(this, arguments);
-        }
-    },
-
-    onBeforeAddChild: function(childView){
-        childView.$el.html('<span>' + childView.el.id + '</span>');
-    },
-
-    selected: function(view) {
-        $.each(this.children._views, function(childViewName, childView) {
-            if (view.$el !== childView.$el) {
-                $(childView.$el.children()[0]).css('color','');
-            }
-        });
-        $(view.$el.children()[0]).css('color','white');
-        messageBus.vent.trigger('ad:selected', view.model);
-    }
+var AdListCollection = Marionette.CollectionView.extend({
+    tagName:'ol',
+    className:'small-ad-display',
+    childView:SmallAdView
 });
 
-module.exports = AdsDisplayCollection;
-
-
-},{"../controllers/messageBus":5,"../views/MetaAdModelItem":24,"backbone.marionette":14}],21:[function(require,module,exports){
-/** 
- * @module AdsFoundItem
- */
-
-var Marionette = require('backbone.marionette');
-var templates = require('../views/templates');
-
-var AdsFoundItem = Marionette.ItemView.extend({
-	template: templates.adCount,
-
-	tagName: 'h1',
-
-	modelEvents: {
-		'change': 'render'
-	},
-
-	onRender: function() {
-		this.$el.attr('id', 'ad-count-notification-header');
-	}
-});
-
-module.exports = AdsFoundItem;
-
-},{"../views/templates":25,"backbone.marionette":14}],22:[function(require,module,exports){
+module.exports = AdListCollection;
+},{"../views/templates":17,"backbone.marionette":11}],16:[function(require,module,exports){
 /** 
  * @module AppLayout
  */
 
 var Marionette = require('backbone.marionette');
-var AdsFoundItem = require('./AdsFoundItem');
-var AdCount = require('../models/AdCount');
-var AdCollection = require('../collections/AdCollection');
-var AdsDisplayCollection = require('./AdsDisplayCollection');
-var DataDisplayLayout = require('./DataDisplayLayout');
-var templates = require('../views/templates');
-var addons = require('../etc/addons');
 
 var AppLayout = Marionette.LayoutView.extend({
-	el: function () {
-		return $('#dog-widget-container').contents().find('body').get(0)
-	},
-
-	template: templates.mainContainer,
-
-	regions: {
-		'adCountTracker': '#ads-found-container',
-		'adVisualDisplay': '#ads-listing-container',
-		'selectedAdData': '#data-display-container'
-	},
-
+	tagName: 'div',
+	className:'dog-diagnostic-controller',
+	template: require('../views/templates').mainContainer,
+	regions:{adList:'#ads-found-container'},
 	onRender: function() {
-		$('#dog-widget-container').drags();
-		
-		this.adCountTracker.show(new AdsFoundItem({model: new AdCount({})}));
-		this.adVisualDisplay.show(new AdsDisplayCollection({collection: new AdCollection({})}));
-		this.selectedAdData.show(new DataDisplayLayout({}));
+		this.$el.appendTo(document.body);
+		this.$el.drags();
 	}
 });
 
 module.exports = AppLayout;
 
-},{"../collections/AdCollection":2,"../etc/addons":7,"../models/AdCount":8,"../views/templates":25,"./AdsDisplayCollection":20,"./AdsFoundItem":21,"./DataDisplayLayout":23,"backbone.marionette":14}],23:[function(require,module,exports){
-/** 
- * @module DataDisplayLayout
- */
-
-var Marionette = require('backbone.marionette');
-var messageBus = require ('../controllers/messageBus');
-var AdModelItem = require('../views/AdModelItem');
-var templates = require('../views/templates');
-
-var DataDisplayLayout = Marionette.LayoutView.extend({
-	template: templates.dataSelection,
-
-	ui: {
-		'screenEvents': '#screen-events',
-		'cumulativeStates': '#cumulative-states',
-		'networkCalls': '#network-calls',
-		'detectionResults': '#detection-results'
-	},
-
-	_currentDataSelection: 'screenEvents',
-
-	className: 'data-display-wrap',
-
-	regions: {
-		'dataDisplay': '#data-display'
-	},
-
-	initialize: function() {
-		messageBus.vent.on('ad:selected', this.metaAdModelSelected, this);
-	},
-
-	metaAdModelSelected: function(metaAdModel) {
-		this._metaAdModel = metaAdModel;
-		this.ui[this._currentDataSelection].trigger('click');
-	},
-
-	// `onAttach` would have been a better method to use
-	// but we can't use it as this region is not shown
-	// because it is embedded.
-	onShow: function() {
-		var self = this,
-			selectors = this.ui;
-
-		$.each(selectors, function(selectorKey, $selector) {		
-			$selector.on('click', function() {
-
-				self._currentDataSelection = selectorKey;
-
-				if (self._metaAdModel) {
-					self.dataDisplay.show(new AdModelItem({'model': self._metaAdModel.attributes.ad.models[selectorKey]}));
-				}
-				
-				$.each(selectors, function(_selectorKey, _$selector) {
-					if (_$selector !== $selector) {
-						_$selector.removeClass('data-model-selected');
-					}
-				});
-
-				$(this).addClass('data-model-selected');
-			});
-		});
-	}
-});
-
-module.exports = DataDisplayLayout;
-
-},{"../controllers/messageBus":5,"../views/AdModelItem":19,"../views/templates":25,"backbone.marionette":14}],24:[function(require,module,exports){
-/** 
- * @module MetaAdModelItem
- */
-
-var Marionette = require('backbone.marionette');
-var MetaAdModel = require('../models/MetaAdModel');
-
-var MetaAdModelItem = Marionette.ItemView.extend({
-	model: MetaAdModel,
-
-	template: false,
-
-	tagName: 'li',
-
-	className: 'ad-listing',
-
-	events: {
-		'click': 'selected'
-	},
-
-	attributes : function() {
-		return {
-			'id': this.model.id,
-		}
-	},
-
-	selected: function() {
-		this.trigger('selected');
-	}
-});
-
-module.exports = MetaAdModelItem;
-
-},{"../models/MetaAdModel":11,"backbone.marionette":14}],25:[function(require,module,exports){
+},{"../views/templates":17,"backbone.marionette":11}],17:[function(require,module,exports){
 /**
  * @module templates
  */
@@ -830,11 +522,8 @@ var _ = require('underscore');
 
 module.exports = {
     // UI templates.
-    'mainContainer': _.template('<div id="ads-found-container"></div>' +
-    '<div id="ads-listing-container"></div>' +
-    '<div id="data-display-container"></div>'),
-
-    'adCount': _.template('<%= adCount %> AD(S) FOUND'),
+    'mainContainer': _.template('<H1>INTEGRAL TAGS</H1><div id="ads-found-container"></div>'),
+    'smallAdView': _.template('<%= id %>'),
 
     'dataSelection': _.template('<div id="data-model-selection-container">' +
     '	<div class="data-model-selection-wrap">' +
@@ -925,4 +614,4 @@ module.exports = {
     '<% }); %>')
 };
 
-},{"underscore":18}]},{},[1]);
+},{"underscore":14}]},{},[1]);
