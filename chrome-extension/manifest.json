@@ -5,16 +5,18 @@
   "description": "Dashboard for viewing integral collection",
   "version": "1.0",
   "content_scripts" : [{
-    "matches":["http://*/*","https://*/*"],
+    "matches":["http://st.adsafecontrol.com/*","http://mashable.com/*"],
     "css":["style.css"],
     "js":["Bootstrapper.js","bundle.js"]
   }],
   "browser_action": {
     "default_icon": "dogD.png",
-    "default_popup": "popup.html"
+    "default_popup": "settings.html"
   },
   "background": {
-    "scripts": ["proxy.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "permissions": [
     "activeTab",
