@@ -14,28 +14,37 @@ var configMap = {
     }
 };
 
-chrome.proxy.settings.set({
-    value: configMap.useProxy,
-    scope: 'regular'
-});
+var getPersistentSetting = function() {
+    return window.localStorage['useProxy'] === 'true';
+};
 
-//chrome.runtime.onConnect.addListener(function(port) {
-//    port.onMessage.addListener(function(message) {
-//        var config;
-//        if (message.useProxy === true) {
-//            config = configMap.useProxy;
-//            chrome.proxy.settings.set({
-//                value: config,
-//                scope: 'regular'
-//            });
-//        } else if (message.useProxy === false) {
-//            config = configMap.noProxy;
-//            chrome.proxy.settings.set({
-//                value: config,
-//                scope: 'regular'
-//            });
-//        }
-//    });
-//});
+var setPersistentSetting = function(value) {
+    window.localStorage['useProxy'] = value + '';
+};
+
+var port = chrome.runtime.connect({name: 'settings'});
+var initialSetting = getPersistentSetting();
+port.postMessage({useProxy: initialSetting});
+
+
+chrome.runtime.onConnect.addListener(function(port) {
+    port.onMessage.addListener(function(message) {
+        var config;
+        if (message.useProxy === 'true') {
+            config = configMap.useProxy;
+            chrome.proxy.settings.set({
+                value: config,
+                scope: 'regular'
+            });
+        } else if (message.useProxy === 'false'){
+            config = configMap.noProxy;
+            chrome.proxy.settings.set({
+                value: config,
+                scope: 'regular'
+            });
+        }
+        setPersistentSetting(message.useProxy);
+    });
+});
 
 
