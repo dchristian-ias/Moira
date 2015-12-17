@@ -7,7 +7,7 @@ var $ = require('jquery');
 var AppLayout = require('../views/AppLayout');
 var AdListCollectionView = require('../views/AdListCollection');
 var AdCollection = require('../collections/AdCollection');
-
+var shows = 0;
 var App = Marionette.Application.extend({
 	ads:new AdCollection(),
 	createAd: function(data, source) {
@@ -18,14 +18,18 @@ var App = Marionette.Application.extend({
 				'data': data,
 				'postSource': source
 			});
+
+
+
+			if(this.ads.length === 1) {
+				this.applayout.render();
+				this.applayout.adList.show(new AdListCollectionView({
+					collection:this.ads
+				}));
+			}
 		}
 
-		this.applayout.render();
-		if(this.ads.length === 1) {
-			this.applayout.adList.show(new AdListCollectionView({
-				collection:this.ads
-			}));
-		}
+
 	},
 
 	initialize: function() {

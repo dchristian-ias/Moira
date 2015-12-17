@@ -6,7 +6,7 @@ var Marionette = require('backbone.marionette');
 
 var AppLayout = Marionette.LayoutView.extend({
 	tagName: 'div',
-	className:'dog-diagnostic-controller',
+	id:'dog-diagnostic-controller',
 	template: require('../views/templates').mainContainer,
 	regions:{adList:'#ads-found-container'},
 	onRender: function() {

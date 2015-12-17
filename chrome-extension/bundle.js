@@ -7,12 +7,19 @@
 var draggable = require('./extplugins/jquery-draggable');
 
 var App = require('./controllers/App');
-new App().start();
+var isTop = false;
+try {
+    isTop = window === window.top;
+} catch (e) {};
+if(isTop) {
+    new App().start();
+}
 
 
 
 
-},{"./controllers/App":3,"./extplugins/jquery-draggable":5}],2:[function(require,module,exports){
+
+},{"./controllers/App":3,"./extplugins/jquery-draggable":4}],2:[function(require,module,exports){
 /**
 * @module AdCollection
 */
@@ -27,7 +34,7 @@ var AdCollection = Backbone.Collection.extend({
 
 module.exports = AdCollection;
 
-},{"../models/Ad":6,"backbone":12}],3:[function(require,module,exports){
+},{"../models/Ad":5,"backbone":11}],3:[function(require,module,exports){
 /** 
  * @module App
  */
@@ -37,7 +44,7 @@ var $ = require('jquery');
 var AppLayout = require('../views/AppLayout');
 var AdListCollectionView = require('../views/AdListCollection');
 var AdCollection = require('../collections/AdCollection');
-
+var shows = 0;
 var App = Marionette.Application.extend({
 	ads:new AdCollection(),
 	createAd: function(data, source) {
@@ -48,14 +55,18 @@ var App = Marionette.Application.extend({
 				'data': data,
 				'postSource': source
 			});
+
+
+
+			if(this.ads.length === 1) {
+				this.applayout.render();
+				this.applayout.adList.show(new AdListCollectionView({
+					collection:this.ads
+				}));
+			}
 		}
 
-		this.applayout.render();
-		if(this.ads.length === 1) {
-			this.applayout.adList.show(new AdListCollectionView({
-				collection:this.ads
-			}));
-		}
+
 	},
 
 	initialize: function() {
@@ -79,37 +90,7 @@ var App = Marionette.Application.extend({
 });
 
 module.exports = App;
-},{"../collections/AdCollection":2,"../views/AdListCollection":15,"../views/AppLayout":16,"backbone.marionette":11,"jquery":13}],4:[function(require,module,exports){
-/**
- * @module modelListener
- */
- 
-var $ = require('jquery');
-
-var modelListener = {
-	listenOnChannelsForChanges : function(modelsFromApp, asidFromAd) {
-		$(window).on('message', function(evt) {
-			// jQuery preprocessing - must use originalEvent to fetch data.
-			var data, asid, channel;
-	
-			try {
-				data = JSON.parse(evt.originalEvent.data);
-				asid = data.asid;
-				channel = data.channel;
-			} catch (e) { };
-
-			if(asid === asidFromAd && channel) {
-				modelsFromApp[channel].set(data.data);
-				console.log("APP: " + asid);
-				console.log(asidFromAd);
-			}
-		}); 
-	}
-};
-
-module.exports = modelListener;
-
-},{"jquery":13}],5:[function(require,module,exports){
+},{"../collections/AdCollection":2,"../views/AdListCollection":14,"../views/AppLayout":15,"backbone.marionette":10,"jquery":12}],4:[function(require,module,exports){
 /** 
  * @module addons
  */
@@ -161,7 +142,7 @@ $.fn.drags = function(opt) {
 }
 module.export = $;
 
-},{"jquery":13}],6:[function(require,module,exports){
+},{"jquery":12}],5:[function(require,module,exports){
 /**
  * @module Ad
  */
@@ -169,9 +150,9 @@ module.export = $;
 var Marionette = require('backbone.marionette');
 var NetworkCalls = require('./NetworkCalls');
 var ScreenEvents = require('./ScreenEvents');
+var Bootstrapper = require('./ScreenEvents');
 var CumulativeStates = require('./CumulativeStates');
 var DetectionResults = require('./DetectionResults');
-var modelListener = require('../controllers/modellistener');
 
 /**
  *  Respresents a unique IAS tag.
@@ -179,6 +160,12 @@ var modelListener = require('../controllers/modellistener');
  *  @returns {constructor} - Marionette Object Constructor.
  */
 var Ad = Backbone.Model.extend({
+    defaults:{
+        viewState:'na',
+        highlighted:false,
+        tagIdType:'',
+        tagId:''
+    },
     initialize: function(options) {
         this.data = options.data;
         this.postSource = options.postSource;
@@ -190,23 +177,74 @@ var Ad = Backbone.Model.extend({
             // on which Ad has changed `viewState`. This provides support 
             // for the beacon in-view markers.
             screenEvents: new ScreenEvents({'id':this.data.asid}),
-            cumulativeStates: new CumulativeStates({})
+            cumulativeStates: new CumulativeStates({}),
+            bootstrapper:new Bootstrapper({})
         };
 
         this.initModelListener();
+        this.models.bootstrapper.on('change:reqquery', function(model,val){
+            var parts;
+            if(val && val.length) {
+                parts = val.toLowerCase().split('anid=');
+                if(parts.length > 1) {
+                    this.set({
+                        tagIdType:'anid',
+                        tagId:parts[1].split('&')[0]
+                    });
+                }
+            }
+        }.bind(this));
+
+        this.models.bootstrapper.on('change:adsafeSrc', function(model,val){
+            var parts,rfwPos;
+            if(val && val.length) {
+                parts = val.toLowerCase().split('/');
+                rfwPos = parts.indexOf('rfw');
+                if(rfwPos !== -1) {
+                    this.set({
+                        tagIdType:'pub/adv',
+                        tagId:parts[rfwPos+2] + '/' + parts[rfwPos+3]
+                    });
+                }
+            }
+        }.bind(this));
+
+
+        this.models.screenEvents.on('change:viewState', function(){
+           this.set('viewState', this.models.screenEvents.get('viewState'));
+        }.bind(this));
         this.setModels();
     },
 
     // Initialize listener for future channel updates as soon as possible.
     initModelListener: function() {
-        modelListener.listenOnChannelsForChanges(this.models, this.data.asid);
+        $(window).on('message', function(evt) {
+            // jQuery preprocessing - must use originalEvent to fetch data.
+            var data, channel;
+
+            try {
+                data = JSON.parse(evt.originalEvent.data);
+                channel = data.channel;
+                if(data && data.asid === this.id && data.channel) {
+                    if(data.channel === 'networkCalls') {
+                        this.models.networkCalls.add(data.data);
+                    } else {
+                        this.models[channel].set(data.data);
+                    }
+
+                }
+            } catch (e) { }
+
+        }.bind(this));
     },
 
     // On instantiation we will set whatever models we can.
     setModels: function() {
-        for (modelName in this.models) {
+        for (var modelName in this.models) {
             if (this.models.hasOwnProperty(modelName)) {
-                if (this.data.channel === modelName) {
+                if(this.data.channel === 'networkCalls') {
+                    this.models.networkCalls.add(this.data.data);
+                } else if (this.data.channel === modelName) {
                     this.models[modelName].set(this.data.data);
                 }
             }
@@ -215,7 +253,7 @@ var Ad = Backbone.Model.extend({
 });
 
 module.exports = Ad;
-},{"../controllers/modellistener":4,"./CumulativeStates":7,"./DetectionResults":8,"./NetworkCalls":9,"./ScreenEvents":10,"backbone.marionette":11}],7:[function(require,module,exports){
+},{"./CumulativeStates":6,"./DetectionResults":7,"./NetworkCalls":8,"./ScreenEvents":9,"backbone.marionette":10}],6:[function(require,module,exports){
 /**
  * @module CumulativeStates
  */
@@ -244,7 +282,7 @@ var CumulativeStates = Backbone.Model.extend({
 
 module.exports = CumulativeStates;
 
-},{"backbone":12}],8:[function(require,module,exports){
+},{"backbone":11}],7:[function(require,module,exports){
 /**
  * @module DetectionResults
  */
@@ -263,108 +301,19 @@ var DetectionResults = Backbone.Model.extend({
 
 module.exports = DetectionResults;
 
-},{"backbone":12}],9:[function(require,module,exports){
+},{"backbone":11}],8:[function(require,module,exports){
 /**
 * @module NetworkCalls
 */
 
 var Backbone = require('backbone');
-
-/** This is a Backbone Model that will store network data. */
-var NetworkCalls = Backbone.Model.extend({
-	defaults : {
-		'adv_entity_id': '',
-		'pub_entity_id': '',
-		'anid': '',
-		'impression': '',
-		'pingTime': '',
-		'scriptUrl': '',
-		'mode': '',
-		'viewId': 'N'
-	},
-
-	initialize : function() {
-		// When we recieve a change event on the impression prop.
-		// we also know that mode and scriptUrl props have probably been populated.
-		this.once('change:impression', function() {
-			var mode = this.attributes.mode,
-				scriptUrl = this.attributes.scriptUrl;
-			if (mode && scriptUrl) {
-				var parseResult = this.parseIntegralId(mode, scriptUrl);
-				if (parseResult) {
-					if (parseResult instanceof Array) {
-						this.attributes.adv_entity_id = parseResult[0];
-						this.attributes.pub_entity_id = parseResult[1];
-						this.attributes.anid = 'na';
-					} else {
-						this.attributes.anid = parseResult;
-						this.attributes.adv_entity_id = 'na';
-						this.attributes.pub_entity_id = 'na';
-					}
-				} else {
-					this.attributes.anid = 'unknown';
-					this.attributes.adv_entity_id = 'unknown';
-					this.attributes.pub_entity_id = 'unknown';
-				}
-			} else {
-				throw new Error('Mode and scriptUrl are undefined.');
-			}
-		});
-	},
-
-	parseIntegralId : function(mode, url) {
-	    // Result will be undefined for unknown modes
-	    var parser = document.createElement('a'),
-	        result;
-
-	    parser.href = url.toLowerCase();
-
-	    var modeMap = {
-	        jss: getAdvPub,
-	        jsi: getAdvPub,
-	        fwjsvid: getAdvPub,
-	        jload: getAnid,
-	        bapi: getAnid,
-	        jsapi: getAnid,
-	        jsvid: getAnid,
-	        jspix: getAnid
-	    };
-
-	    function getAnid() {
-	        // Use slice to remove the '?' character form query string.
-	        var params = parser.search.slice(1, parser.search.length)
-	            .split('&'),
-	            i;
-	        
-	        for (i = 0; i < params.length; i++) {
-	            var param = params[i].split('=');
-	            if (/anid/i.test(param[0])) {
-	                return param[1];
-	            } 
-	        }
-	        throw new Error('anId parsing error.');
-	    };
-
-	    function getAdvPub() {
-	        var advEntityPubEntity = parser.pathname.split('/')
-	            .slice(3, 5);
-	        var match = /[0-9]+/;
-	        if (advEntityPubEntity instanceof Array && match.test(advEntityPubEntity[0]) && match.test(advEntityPubEntity[1])) {
-	        	return advEntityPubEntity;
-	        } else {
-	        	throw new Error('advEntityPubEntity parsing error.');
-	        }
-	    };
-
-	    if (modeMap[mode]) { result = modeMap[mode](); };
-
-	    return result;
-	}
+var NetworkCall = Backbone.Model.extend({});
+var NetworkCalls = Backbone.Collection.extend({
+	model:NetworkCall
 });
-
 module.exports = NetworkCalls;
 
-},{"backbone":12}],10:[function(require,module,exports){
+},{"backbone":11}],9:[function(require,module,exports){
 /**
  * @module ScreenEvents
  */
@@ -393,20 +342,12 @@ var ScreenEvents = Backbone.Model.extend({
         'fState': '',
         'method': '',
         'viewId': 'S'
-    },
-
-    initialize: function() {
-        this.on('change:viewState', this.broadcastViewBeaconChange);
-    },
-
-    broadcastViewBeaconChange: function() {
-        messageBus.vent.trigger('inViewBeaconUpdate', this.id, this.attributes.viewState || '');
     }
 });
 
 module.exports = ScreenEvents;
 
-},{"backbone":12}],11:[function(require,module,exports){
+},{"backbone":11}],10:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -440,7 +381,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],12:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/backbone/backbone-min.js":11,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":13}],11:[function(require,module,exports){
 (function (global){
 
 ; $ = global.$ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js");
@@ -453,7 +394,7 @@ _ = global._ = require("/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":13,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":14}],13:[function(require,module,exports){
+},{"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/jquery/dist/jquery.min.js":12,"/Users/moshe/IntelliJ/dogdiaf/DogDiagnostic/node_modules/underscore/underscore-min.js":13}],12:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 /*! jQuery v2.1.4 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
@@ -466,7 +407,7 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (global){
 ; var __browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 //     Underscore.js 1.8.3
@@ -480,11 +421,51 @@ void 0===c?d&&"get"in d&&null!==(e=d.get(a,b))?e:(e=n.find.attr(a,b),null==e?voi
 }).call(global, undefined, undefined, undefined, undefined, function defineExport(ex) { module.exports = ex; });
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Marionette = require('backbone.marionette');
-var SmallAdView = Marionette.ItemView.extend({
+var NetworkCallComposite = require('../views/NetworkCallComposite');
+
+var SmallAdView = Marionette.LayoutView.extend({
     tagName:'li',
-    template:require('../views/templates').smallAdView
+    className:'na',
+    template:require('../views/templates').smallAdView,
+    modelEvents:{
+        'change:viewState':'updateDisplay',
+        'change:highlighted':'setHighlighting',
+        'change:tagIdType':'setIds'
+    },
+    regions:{
+        dtDisplay:'.dt-calls'
+    },
+    onRender: function(){
+      this.dtDisplay.show(new NetworkCallComposite({
+          collection:this.model.models.networkCalls
+      }))
+    },
+    setIds:function(){
+        this.$('.idType').text(this.model.get('tagIdType'));
+        this.$('.tagId').text(this.model.get('tagId'));
+    },
+    events:{
+        click:'toggleHighlightingOnModel'
+    },
+    updateDisplay:function(){
+      this.el.className = this.model.get('viewState');
+    },
+    toggleHighlightingOnModel:function(){
+        this.model.set('highlighted', !this.model.get('highlighted'))
+    },
+    setHighlighting:function(){
+        var model = this.model;
+        model.postSource.postMessage(JSON.stringify({
+            channel:'FirewallJSAction',
+            asid:model.id,
+            data:{
+                action:'highlightContainer',
+                enable:model.get('highlighted')
+            }
+        }),'*')
+    }
 });
 
 var AdListCollection = Marionette.CollectionView.extend({
@@ -494,7 +475,7 @@ var AdListCollection = Marionette.CollectionView.extend({
 });
 
 module.exports = AdListCollection;
-},{"../views/templates":17,"backbone.marionette":11}],16:[function(require,module,exports){
+},{"../views/NetworkCallComposite":16,"../views/templates":17,"backbone.marionette":10}],15:[function(require,module,exports){
 /** 
  * @module AppLayout
  */
@@ -503,7 +484,7 @@ var Marionette = require('backbone.marionette');
 
 var AppLayout = Marionette.LayoutView.extend({
 	tagName: 'div',
-	className:'dog-diagnostic-controller',
+	id:'dog-diagnostic-controller',
 	template: require('../views/templates').mainContainer,
 	regions:{adList:'#ads-found-container'},
 	onRender: function() {
@@ -514,7 +495,55 @@ var AppLayout = Marionette.LayoutView.extend({
 
 module.exports = AppLayout;
 
-},{"../views/templates":17,"backbone.marionette":11}],17:[function(require,module,exports){
+},{"../views/templates":17,"backbone.marionette":10}],16:[function(require,module,exports){
+var Marionette = require('backbone.marionette');
+
+var NetworkCallItemView = Marionette.ItemView.extend({
+    tagName:'tr',
+    template:require('../views/templates').networkCallView,
+    templateHelpers:{
+        callType:function(){
+            var lookup = {
+                'a':"Ad Talk",
+                'b':"Diagnostic information",
+                'i':"Presence of third party",
+                'l':"Ad Billable because of size",
+                'v':"Full complement of video events",
+                'p':"In View to MRC spec",
+                'pf':"Ad is fully in view",
+                'qf':"Fully in view at quartile",
+                's': "Fraud measurements",
+                'vh': "Fraud measurements",
+                't':"Would be in view if not for focus",
+                'u':"Final data collection",
+                'v':"Non geometric measurement technique ready"
+            };
+            return lookup[this.callType];
+        },
+        callTime:function(){
+            var result,
+                pingTime = this.pingTime;
+            if(pingTime >= 0) {
+                result = pingTime;
+            } else if (pingTime.indexOf('.') !== -1) {
+                result = pingTime.slice('.')[1];
+            } else {
+                result = 'na'
+            }
+            return result;
+        }
+    }
+});
+
+var NetworkCallCompositeView = Marionette.CompositeView.extend({
+    tagName:'table',
+    template:require('../views/templates').networkCallView,
+    childView:NetworkCallItemView,
+    childViewContainer:'tbody'
+});
+
+module.exports = NetworkCallCompositeView;
+},{"../views/templates":17,"backbone.marionette":10}],17:[function(require,module,exports){
 /**
  * @module templates
  */
@@ -523,95 +552,13 @@ var _ = require('underscore');
 module.exports = {
     // UI templates.
     'mainContainer': _.template('<H1>INTEGRAL TAGS</H1><div id="ads-found-container"></div>'),
-    'smallAdView': _.template('<%= id %>'),
-
-    'dataSelection': _.template('<div id="data-model-selection-container">' +
-    '	<div class="data-model-selection-wrap">' +
-    '		<h1 id="screen-events" class="data-model-selection">SE</h1>' +
-    '	</div>' +
-    '	<div class="data-model-selection-wrap">' +
-    '		<h1 id="cumulative-states" class="data-model-selection">CS</h1>' +
-    '	</div>' +
-    '	<div class="data-model-selection-wrap">' +
-    '		<h1 id="network-calls" class="data-model-selection">NC</h1>' +
-    '	</div>' +
-    '	<div class="data-model-selection-wrap">' +
-    '		<h1 id="detection-results" class="data-model-selection">DR</h1>' +
-    '	</div>' +
-    '</div>' +
-    '<div id="data-display"></div>'),
-
-    // Backbone model templates.
-    'detectionResults': _.template('<% _.each(attributes, function(val, key, attributes){ %>' +
-    '	<% if (key === "documentation") { %>' +
-    '		<li> <a href="<%= val %>" onclick="return false">Visibility Ladder</a></li>' +
-    '		<% } else if (key === "visibileUrl") { %>' +
-    '			<li><a href="<%= val %>" onclick="return false">Visible Url</a></li>' +
-    '		<% } else if (key !== "viewId") { %>' +
-    '			<li> <%= key %> : <%= val %></li>' +
-    '		<% } %>' +
-    '<% }); %>'),
-
-    'networkCalls': _.template('<% _.each(attributes, function(val, key, attributes){ %>' +
-    '	<% if (key === "scriptUrl") { %>' +
-    '		<li> <a href="<%= val %>" onclick="return false">Script Url</a></li>' +
-    '	<% } else if (key !== "viewId" && val !== "na") { %>' +
-    '		<li> <%= key %> : <%= val %></li>' +
-    '	<% }%>' +
-    '<% }); %>'),
-
-    'screenEvents': _.template('<li><a href="https://util01.303net.net/confluence/display/fwnotes/JS+Info" onclick="return false">JS Info Codes</a></li>' +
-    '<% _.each(attributes, function(val, key) { %>' +
-    '	<% if (key === "details") { %>' +
-    '		<% var details = val.split(","), i; %>' +
-    '		<li> <%= key %> : </li>' +
-    '			<ul>' +
-    '				<% for (i = 0; i < details.length; i++) { %>' +
-    '					<% if (details[i]) { %>' +
-    '						<li> <%= details[i] %></li>' +
-    '					<% } %>' +
-    '				<% } %>' +
-    '			</ul>' +
-    '	<% } else if (key === "breakdowns" && val.piv && val.as) { %>' +
-    '		<% var piv = val.piv[val.piv.length - 1], as = val.as[val.as.length - 1]; %>' +
-    '		<li> <%= key %> : </li>' +
-    '			<ol>' +
-    '				<li> piv : ' +
-    '					<ul>' +
-    '						<% if (piv && piv.state && piv.duration) { %>' +
-    '							<li> state : <%= piv.state %> </li>' +
-    '							<li> duration : <%= piv.duration %> </li>' +
-    '						<% } %>' +
-    '					</ul>' +
-    '				</li>' +
-    '				<li> as : '+
-    '					<ul>' +
-    '						<% if (as && as.state && as.duration) { %>' +
-    '							<li> state : <%= as.state %> </li>' +
-    '							<li> duration : <%= as.duration %> </li>' +
-    '						<% } %>' +
-    '					</ul>' +
-    '				</li>' +
-    '			</ol>' +
-    '	<% } else if (key === "winDimensions" || key === "containerDimensions") { %>' +
-    '		<li> <%= key %> : </li>' +
-    '			<ul>' +
-    '				<li> x : <%= val.x %></li>' +
-    '				<li> y : <%= val.y %></li>' +
-    '				<li> height : <%= val.height %></li>' +
-    '				<li> width : <%= val.width %></li>' +
-    '			</ul>' +
-    '	<% } else if (key !== "viewId" && key !== "id") { %>' +
-    '		<li> <%= key %> : <%= val %></li>' +
-    '	<% } %>' +
-    '<% }); %>'),
-
-    'cumulativeStates': _.template('<li><a href="https://util01.303net.net/confluence/display/fwnotes/JS+Info" onclick="return false">JS Info Codes</a></li>' +
-    '<% _.each(attributes, function(val, key, attributes){ %>' +
-    '	<% if (key !== "viewId") { %>' +
-    '		<li> <%= key %> : <%= val %></li>' +
-    '	<% } %>' +
-    '<% }); %>')
+    'smallAdView': _.template('<span class="idType"><%= tagIdType %></span>:<span class="tagId"><%= tagId %></span> <span> <%= id %></span>' +
+    '   <div class="dt-calls"></div>'),
+    'networkCallView': _.template('<td><%=callType() %></td><td><%=callTime() %></td>'),
+    'networkCallComposite':_.template('<thead>' +
+    '       <tr><th>Call Type</th><th>Call Number</th></tr>' +
+    '   </thead>' +
+    '    <tbody class="dt-call-list"></tbody>')
 };
 
-},{"underscore":14}]},{},[1]);
+},{"underscore":13}]},{},[1]);

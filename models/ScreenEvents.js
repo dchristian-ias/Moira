@@ -26,14 +26,6 @@ var ScreenEvents = Backbone.Model.extend({
         'fState': '',
         'method': '',
         'viewId': 'S'
-    },
-
-    initialize: function() {
-        this.on('change:viewState', this.broadcastViewBeaconChange);
-    },
-
-    broadcastViewBeaconChange: function() {
-        messageBus.vent.trigger('inViewBeaconUpdate', this.id, this.attributes.viewState || '');
     }
 });
 

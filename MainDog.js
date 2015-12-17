@@ -6,7 +6,14 @@
 var draggable = require('./extplugins/jquery-draggable');
 
 var App = require('./controllers/App');
-new App().start();
+var isTop = false;
+try {
+    isTop = window === window.top;
+} catch (e) {};
+if(isTop) {
+    new App().start();
+}
+
 
 
 

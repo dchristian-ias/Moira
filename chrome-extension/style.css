@@ -1,18 +1,31 @@
 /* ADS FOUND CONTAINER */
 
-div#ads-found-container {
-    position:absolute;
-    height:25%;
-    width:45%;
-    padding-top:15px;
+#dog-diagnostic-controller {
+    position:fixed;
+    right:10px;
+    bottom:10px;
+    z-index:9999;
+    padding:25px;
+    border-radius:10px;
+    background-color: rgba(234, 117, 37, .3);
 }
 
-div#ads-found-container h1#ad-count-notification-header {
-    text-align:center;
-    margin:0px auto;
-    border-bottom:3px solid black;
+#dog-diagnostic-controller h1{
+    font-size: 15px;
+}
+#dog-diagnostic-controller #ads-found-container .inView{
+    color:green;
+}
+#dog-diagnostic-controller #ads-found-container .partialViewPlus span{
+    color:lightgreen;
 }
 
+#dog-diagnostic-controller #ads-found-container .outOfView span{
+    color:red;
+}
+#dog-diagnostic-controller #ads-found-container .partialViewMinus span{
+    color:hotpink;
+}
 /* ADS LISTING CONTAINER HEADER */
 
 div#ads-listing-container {
@@ -36,7 +49,7 @@ div#ads-listing-container ol > li > span:hover {
 
 div#data-display-container {
     border-left:3px solid black;
-    border-radius:15px;
+
     height:100%;
     width:55%;
     float:right;

@@ -1,7 +1,47 @@
 var Marionette = require('backbone.marionette');
-var SmallAdView = Marionette.ItemView.extend({
+var NetworkCallComposite = require('../views/NetworkCallComposite');
+
+var SmallAdView = Marionette.LayoutView.extend({
     tagName:'li',
-    template:require('../views/templates').smallAdView
+    className:'na',
+    template:require('../views/templates').smallAdView,
+    modelEvents:{
+        'change:viewState':'updateDisplay',
+        'change:highlighted':'setHighlighting',
+        'change:tagIdType':'setIds'
+    },
+    regions:{
+        dtDisplay:'.dt-calls'
+    },
+    onRender: function(){
+      this.dtDisplay.show(new NetworkCallComposite({
+          collection:this.model.models.networkCalls
+      }))
+    },
+    setIds:function(){
+        this.$('.idType').text(this.model.get('tagIdType'));
+        this.$('.tagId').text(this.model.get('tagId'));
+    },
+    events:{
+        click:'toggleHighlightingOnModel'
+    },
+    updateDisplay:function(){
+      this.el.className = this.model.get('viewState');
+    },
+    toggleHighlightingOnModel:function(){
+        this.model.set('highlighted', !this.model.get('highlighted'))
+    },
+    setHighlighting:function(){
+        var model = this.model;
+        model.postSource.postMessage(JSON.stringify({
+            channel:'FirewallJSAction',
+            asid:model.id,
+            data:{
+                action:'highlightContainer',
+                enable:model.get('highlighted')
+            }
+        }),'*')
+    }
 });
 
 var AdListCollection = Marionette.CollectionView.extend({
