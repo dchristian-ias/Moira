@@ -13,6 +13,9 @@
     "default_icon": "dogD.png",
     "default_popup": "popup.html"
   },
+  "background": {
+    "scripts": ["proxy.js"]
+  },
   "permissions": [
     "activeTab",
     "proxy"
