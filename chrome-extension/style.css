@@ -7,7 +7,7 @@
     z-index:9999;
     padding:25px;
     border-radius:10px;
-    background-color: rgba(234, 117, 37, .3);
+    background-color: rgba(234, 117, 37, .7);
 }
 
 #dog-diagnostic-controller h1{
@@ -26,71 +26,16 @@
 #dog-diagnostic-controller #ads-found-container .partialViewMinus span{
     color:hotpink;
 }
-/* ADS LISTING CONTAINER HEADER */
 
-div#ads-listing-container {
-    position:absolute;
-    overflow-y:auto;
-    bottom:0;
-    height:75%;
-    width:45%;
+#dog-diagnostic-controller .dt-calls {
+    display: none;
 }
 
-div#ads-listing-container ol {
-    list-style: square url("https://st.adsafecontrol.com/utilities/DogDiagnostic/assets/black_square.png");
-}
-
-div#ads-listing-container ol > li > span:hover {
-    color:white;
-    cursor:pointer;
-}
-
-/* DATA DISPLAY CONTAINER HEADER */
-
-div#data-display-container {
-    border-left:3px solid black;
-
-    height:100%;
-    width:55%;
-    float:right;
-}
-
-div#data-display-container .data-display-wrap {
-    height:100%;
-}
-
-div#data-display-container div#data-model-selection-container {
-    width:100%;
-    height:25%;
-}
-
-div#data-model-selection-container div.data-model-selection-wrap {
-    width:25%;
-    height:100%;
-    float:left;
-    cursor:pointer;
-}
-
-div#data-model-selection-container div.data-model-selection-wrap h1.data-model-selection {
-    text-align:center;
-    margin:0 auto;
-    padding-top:15px;
-    border-bottom:3px solid black;
-}
-
-div#data-model-selection-container div.data-model-selection-wrap h1.data-model-selection:hover {
-    color:white;
-}
-
-div#data-model-selection-container div.data-model-selection-wrap h1.data-model-selected {
-    color: white;
-}
-
-/* DATA DISPLAY CONTAINER CONTENT */
-
-div#data-display {
-    width:100%;
-    height:72%;
-    overflow-y:auto;
-    margin-top: 5px;
+#dog-diagnostic-controller .small-ad-display li:hover .dt-calls {
+    display: block;
+    box-shadow:-4px 4px 2px #ccc;
+    position: relative;
+    background-color: #ffffff;
+    margin-left: -300px;
+    z-index: 99999;
 }
