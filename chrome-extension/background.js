@@ -4,7 +4,7 @@ var configMap = {
         pacScript: {
             data: "function FindProxyForURL(url, host) {\n" +
             "  if (host === 'pixel.adsafeprotected.com' || host === 'fw.adsafeprotected.com')\n" +
-            "    return 'PROXY fw.dev-adsafeprotected.com:8080';\n" +
+            "    return 'PROXY vendo-123-176.test-adsafeprotected.com';\n" +
             "  return 'DIRECT';\n" +
             "}"
         }
