@@ -5,7 +5,7 @@
   "description": "Dashboard for viewing integral collection",
   "version": "1.0",
   "content_scripts" : [{
-    "matches":["http://st.adsafecontrol.com/*","http://mashable.com/*"],
+    "matches":["http://*/*","https://*/*"],
     "css":["style.css"],
     "js":["Bootstrapper.js","bundle.js"]
   }],
