@@ -97,6 +97,7 @@ var Ad = Backbone.Model.extend({
     setModels: function() {
         for (var modelName in this.models) {
             if (this.models.hasOwnProperty(modelName)) {
+
                 if(this.data.channel === 'networkCalls') {
                     this.models.networkCalls.add(this.data.data);
                 } else if (this.data.channel === modelName) {

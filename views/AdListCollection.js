@@ -15,7 +15,7 @@ var SmallAdView = Marionette.LayoutView.extend({
     },
     onRender: function(){
       this.dtDisplay.show(new NetworkCallComposite({
-          collection: this.model.models.networkCalls,
+          collection: this.model.models.networkCalls
       }))
     },
     setIds:function(){
@@ -33,14 +33,16 @@ var SmallAdView = Marionette.LayoutView.extend({
     },
     setHighlighting:function(){
         var model = this.model;
-        model.postSource.postMessage(JSON.stringify({
-            channel:'FirewallJSAction',
-            asid:model.id,
-            data:{
-                action:'highlightContainer',
-                enable:model.get('highlighted')
-            }
-        }),'*')
+        if(model.postSource) {
+            model.postSource.postMessage(JSON.stringify({
+                channel: 'FirewallJSAction',
+                asid: model.id,
+                data: {
+                    action: 'highlightContainer',
+                    enable: model.get('highlighted')
+                }
+            }), '*')
+        }
     }
 });
 

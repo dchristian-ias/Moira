@@ -34,8 +34,10 @@
 #dog-diagnostic-controller .small-ad-display li:hover .dt-calls {
     display: block;
     box-shadow:-4px 4px 2px #ccc;
-    position: relative;
+    position: absolute;
     background-color: #ffffff;
-    margin-left: -300px;
+    margin-left: -250px;
+    margin-right:200px;
+    margin-bottom: 200px;
     z-index: 99999;
 }
