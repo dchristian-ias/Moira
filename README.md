@@ -1,4 +1,6 @@
-Dog Diagnostic 
+Moira -- The Tag Doctor
 ==============
 
-A bookmarklette web app for Integral Ad Science that interfaces with the IAS FireWall to display JavaScript infor for the client. 
+![](https://i.imgur.com/YAJ6MQ5.png "Moira -- The Tag Doctor")
+
+A browser plug-in that displays information about Integral tags on live web pages.
