@@ -10,7 +10,6 @@ var NetworkCallItemView = Marionette.ItemView.extend({
             'b':"Diagnostic information",
             'i':"Presence of third party",
             'l':"Ad Billable because of size",
-            'v':"Full complement of video events",
             'p':"In View to MRC spec",
             'pf':"Ad is fully in view",
             'qf':"Fully in view at quartile",
@@ -27,7 +26,7 @@ var NetworkCallItemView = Marionette.ItemView.extend({
         } else if (pingTime.indexOf('.') !== -1) {
             callTime = pingTime.slice('.')[1];
         } else {
-            callTime = 'na'
+            callTime = 'na';
         }
 
         return  {

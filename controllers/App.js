@@ -4,6 +4,7 @@
  
 var Marionette = require('backbone.marionette');
 var $ = require('jquery');
+var Materialize = require('materialize-js');
 var AppLayout = require('../views/AppLayout');
 var AdListCollectionView = require('../views/AdListCollection');
 var AdCollection = require('../collections/AdCollection');

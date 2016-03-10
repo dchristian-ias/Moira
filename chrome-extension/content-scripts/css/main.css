@@ -1,0 +1,37 @@
+/* ADS FOUND CONTAINER */
+#dog-diagnostic-controller {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 9999;
+  padding: 25px;
+  border-radius: 10px;
+  background-color: rgba(234, 117, 37, 0.7); }
+
+#dog-diagnostic-controller h1 {
+  font-size: 15px; }
+
+#dog-diagnostic-controller #ads-found-container .inView {
+  color: green; }
+
+#dog-diagnostic-controller #ads-found-container .partialViewPlus span {
+  color: lightgreen; }
+
+#dog-diagnostic-controller #ads-found-container .outOfView span {
+  color: red; }
+
+#dog-diagnostic-controller #ads-found-container .partialViewMinus span {
+  color: hotpink; }
+
+#dog-diagnostic-controller .dt-calls {
+  display: none; }
+
+#dog-diagnostic-controller .small-ad-display li:hover .dt-calls {
+  display: block;
+  box-shadow: -4px 4px 2px #ccc;
+  position: absolute;
+  background-color: #ffffff;
+  margin-left: -250px;
+  margin-right: 200px;
+  margin-bottom: 200px;
+  z-index: 99999; }

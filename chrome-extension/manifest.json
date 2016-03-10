@@ -1,21 +1,26 @@
 {
   "manifest_version": 2,
 
-  "name": "Dog Diagnostic Dashboard",
-  "description": "Dashboard for viewing integral collection",
+  "name": "Moira – The Tag Doctor",
+  "description": "A browser plug-in that displays information from Integral tags on live web pages.",
   "version": "1.0",
   "content_scripts" : [{
     "matches":["http://*/*","https://*/*"],
-    "css":["style.css"],
-    "js":["Bootstrapper.js","bundle.js"]
+    "css":[
+      "content-scripts/css/main.css"
+    ],
+    "js":[
+      "content-scripts/js/Bootstrapper.js",
+      "content-scripts/js/bundle.js"
+    ]
   }],
   "browser_action": {
-    "default_icon": "dogD.png",
-    "default_popup": "settings.html"
+    "default_icon": "browser-action/img/integral-logo.png",
+    "default_popup": "browser-action/pop-up.html"
   },
   "background": {
     "scripts": [
-      "background.js"
+      "background/main.js"
     ]
   },
   "permissions": [

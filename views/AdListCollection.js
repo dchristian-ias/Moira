@@ -16,7 +16,7 @@ var SmallAdView = Marionette.LayoutView.extend({
     onRender: function(){
       this.dtDisplay.show(new NetworkCallComposite({
           collection: this.model.models.networkCalls
-      }))
+      }));
     },
     setIds:function(){
         this.$('.idType').text(this.model.get('tagIdType'));
@@ -29,10 +29,11 @@ var SmallAdView = Marionette.LayoutView.extend({
       this.el.className = this.model.get('viewState');
     },
     toggleHighlightingOnModel:function(){
-        this.model.set('highlighted', !this.model.get('highlighted'))
+        this.model.set('highlighted', !this.model.get('highlighted'));
     },
     setHighlighting:function(){
         var model = this.model;
+        console.log("postSource");
         if(model.postSource) {
             model.postSource.postMessage(JSON.stringify({
                 channel: 'FirewallJSAction',
@@ -41,7 +42,7 @@ var SmallAdView = Marionette.LayoutView.extend({
                     action: 'highlightContainer',
                     enable: model.get('highlighted')
                 }
-            }), '*')
+            }), '*');
         }
     }
 });
