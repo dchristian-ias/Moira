@@ -1,0 +1,20 @@
+@font-face {
+  font-family: 'din-next-w01-light';
+  src: url('../fonts/din-next-w01-light.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'din-next-w01-medium';
+  src: url('../fonts/din-next-w01-medium.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'din-next-w01-bold';
+  src: url('../fonts/din-next-w01-bold.woff') format('woff');
+}
+
+$primary-font-light: din-next-w01-light;
+$primary-font-medium: din-next-w01-medium;
+$primary-font-bold: din-next-w01-bold;
+
+$font-stack: $primary-font-light, helvetica neue, helvetica, arial, sans-serif;

@@ -5,9 +5,21 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     browserify: {
-      main: {
-        src: 'app.js',
+      content_scripts: {
+        src: 'src/js/apps/content-scripts/app.js',
         dest: 'chrome-extension/content-scripts/js/bundle.js'
+      },
+      background: {
+        src: 'src/js/apps/background/app.js',
+        dest: 'chrome-extension/background/js/bundle.js'
+      },
+      browser_action: {
+        src: 'src/js/apps/browser-action/main.js',
+        dest: 'chrome-extension/browser-action/js/bundle.js',
+        options: {
+          extensions: ['.hbs'],
+          transform: ['hbsfy']
+        }
       }
     },
     sass: {
@@ -17,17 +29,17 @@ module.exports = function(grunt) {
           noCache: true
         },
         files: {
-          'chrome-extension/content-scripts/css/main.css': 'assets/css/main.scss',
-          'chrome-extension/browser-action/css/main.css': 'assets/css/pop_up.scss'
+          'chrome-extension/content-scripts/css/main.css': 'src/css/main.scss',
+          'chrome-extension/browser-action/css/main.css': 'src/css/browser_action.scss'
         }
       }
     },
     jshint: {
       all: [
-        'collections/*.js',
-        'controllers/*.js',
-        'models/*.js',
-        'views/*.js',
+        'src/js/apps/content-scripts/*.js',
+        'src/js/apps/background/*.js',
+        'src/js/apps/browser-action/*.js',
+        'src/js/apps/browser-action/*/*.js',
         'Gruntfile.js'
       ]
     }

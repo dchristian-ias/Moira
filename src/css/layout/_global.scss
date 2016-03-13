@@ -1,0 +1,45 @@
+$primary-color: $ias-blue;
+
+.primary-color {
+  color: $primary-color;
+}
+
+.primary-font-light {
+  font-family: $primary-font-light;
+}
+
+.primary-font-medium {
+  font-family: $primary-font-medium;
+}
+
+.primary-font-bold {
+  font-family: $primary-font-bold;
+}
+
+.ias-logo {
+  width: 36px;
+  height: 36px;
+  font-size: 29.4px;
+  border-radius: 50%;
+  line-height: 35px;
+  position: relative;
+  color: $primary-color;
+  border: 1px solid $primary-color;
+  & .integral {
+    position: absolute;
+    left: 11px;
+  }
+  & .integral-tilt {
+      opacity: .25;
+      position: absolute;
+    &:nth-of-type(2) {
+      -webkit-transform: rotate(45deg);
+    }
+    &:nth-of-type(3) {
+      -webkit-transform: rotate(90deg);
+    }
+    &:nth-of-type(4) {
+      -webkit-transform: rotate(135deg);
+    }
+  }
+}

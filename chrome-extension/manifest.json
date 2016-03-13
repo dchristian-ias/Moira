@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
 
-  "name": "Moira – The Tag Doctor",
+  "name": "Moira",
   "description": "A browser plug-in that displays information from Integral tags on live web pages.",
   "version": "1.0",
   "content_scripts" : [{
@@ -15,16 +15,18 @@
     ]
   }],
   "browser_action": {
-    "default_icon": "browser-action/img/integral-logo.png",
-    "default_popup": "browser-action/pop-up.html"
+    "default_icon": "browser-action/img/ias-logo.png",
+    "default_popup": "browser-action/index.html"
   },
   "background": {
     "scripts": [
-      "background/main.js"
+      "background/js/bundle.js"
     ]
   },
   "permissions": [
     "activeTab",
-    "proxy"
-  ]
+    "proxy",
+    "tabs"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }
