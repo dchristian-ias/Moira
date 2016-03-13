@@ -36,11 +36,14 @@ module.exports = function(grunt) {
     },
     jshint: {
       all: [
-        'src/js/apps/content-scripts/*.js',
+        'Gruntfile.js',
         'src/js/apps/background/*.js',
         'src/js/apps/browser-action/*.js',
         'src/js/apps/browser-action/*/*.js',
-        'Gruntfile.js'
+        'src/js/apps/browser-action/*/*/*.js',
+        'src/js/apps/browser-action/*/*/*/*.js',
+        'src/js/apps/content-scripts/*.js',
+        'src/js/apps/content-scripts/*/*.js'
       ]
     }
   });

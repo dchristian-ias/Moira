@@ -1272,17 +1272,37 @@ var BrowserActionApp = require('../../../app'),
      */
     Controller = {
       showPubScore: function(pubUrl) {
-        var pubScoreView,
-            fetchingPubScore = BrowserActionApp.request('pubScore:entity', pubUrl);
+        var pubScoreLayout, adFraudView, overviewView, 
+        fetchingPubScore, viewabilityView, brandSafetyView;
+
+        fetchingPubScore = BrowserActionApp.request('pubScore:entity', pubUrl);
 
         $.when(fetchingPubScore).done(function(pubScore) {
 
           if(pubScore !== undefined) {
-            pubScoreView = new Show.PubScore({ model: pubScore });
-          } else {
-            pubScoreView = new Show.MissingPubScore();
-          }
-          BrowserActionApp.regions.main.show(pubScoreView);
+            /**
+             * If pubScore model is successfully retrieved, then 
+             * instantiate the Pub Score Layout and all of its subviews
+             */
+            pubScoreLayout = new Show.PubScore({ model: pubScore });
+            adFraudView = new Show.PubScore.AdFraud({ model: pubScore });
+            overviewView = new Show.PubScore.Overview({ model: pubScore });
+            viewabilityView = new Show.PubScore.Viewability({ model: pubScore });
+            brandSafetyView = new Show.PubScore.BrandSafety({ model: pubScore });
+
+            /**
+             * Display the the Pub Score Layout in the main
+             * region of the Browser Action App. Then, display 
+             * all of the subviews in the Pub Score Layout,
+             * these sub views contain content for each tabs displayed
+             */  
+            BrowserActionApp.regions.main.show(pubScoreLayout);
+            pubScoreLayout.overview.show(overviewView);
+            pubScoreLayout.brandSafety.show(brandSafetyView);
+            pubScoreLayout.adFraud.show(adFraudView);
+            pubScoreLayout.viewability.show(viewabilityView);
+
+          } 
         });
       }
     };
@@ -1292,132 +1312,183 @@ module.exports = Controller;
 var Show = {},
     $ = require('jquery'),
     Marionette = require('backbone.marionette'),
-    PubScoreTmplt = require('./templates/pub_score.hbs');
+    pubScoreLayout = require('./templates/pub_scores.hbs'),
+    overviewTmplt = require('./templates/overview.hbs'),
+    adFraudTmplt = require('./templates/ad_fraud.hbs'),
+    brandSafetyTmplt = require('./templates/brand_safety.hbs'),
+    viewabilityTmplt = require('./templates/viewability.hbs');
 
-  Show.PubScore = Marionette.ItemView.extend({
-    template: PubScoreTmplt,
-    /**
-     * Initialize Materialize Css's tabs once this
-     * view has ben inserted into the DOM
-     */
-    onShow: function() {
-      $('ul.tabs').tabs();
-    }
-  });
+    Show.PubScore = Marionette.LayoutView.extend({
+      
+      template: pubScoreLayout,
+      
+      regions: {
+        overview: "#overview",
+        brandSafety: "#brand-safety",
+        adFraud: "#ad-fraud",
+        viewability: "#viewability"
+      },
+      /**
+       * Initialize Materialize Css's tabs once this
+       * view has ben inserted into the DOM
+       */
+      onShow: function() {
+        $('ul.tabs').tabs();
+      }
+    });
 
-  module.exports = Show;
+    Show.PubScore.Overview = Marionette.ItemView.extend({
+      template: overviewTmplt
+    });
 
-  
-},{"./templates/pub_score.hbs":34,"backbone.marionette":1,"jquery":23}],34:[function(require,module,exports){
+    Show.PubScore.AdFraud = Marionette.ItemView.extend({
+      template: adFraudTmplt
+    });
+
+    Show.PubScore.BrandSafety = Marionette.ItemView.extend({
+      template: brandSafetyTmplt
+    });
+
+    Show.PubScore.Viewability = Marionette.ItemView.extend({
+      template: viewabilityTmplt
+    });
+
+   module.exports = Show;
+
+},{"./templates/ad_fraud.hbs":34,"./templates/brand_safety.hbs":35,"./templates/overview.hbs":36,"./templates/pub_scores.hbs":37,"./templates/viewability.hbs":38,"backbone.marionette":1,"jquery":23}],34:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var stack1, helper, alias1=container.escapeExpression, alias2=container.lambda;
+
+  return "<div class=\"row pub-score-section\">\n  <p>\n   <span>\n      Risk:\n    </span>\n    "
+    + alias1(((helper = (helper = helpers.risk || (depth0 != null ? depth0.risk : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"risk","hash":{},"data":data}) : helper)))
+    + "\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Suspicios Activity Realtime:\n      </span>\n        "
+    + alias1(alias2(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.rsa : stack1), depth0))
+    + "\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Suspicios Activity Metric:\n      </span>\n        "
+    + alias1(alias2(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.sam : stack1), depth0))
+    + "\n    </div>\n  </div>\n</div>";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],35:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+
+  return "<div class=\"row pub-score-section\">\n  <p>\n    Standard Categories:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Adult Content:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.adt : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Alcohol:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.alc : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Auto Refresh:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.arf : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Hate Speech:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.hat : stack1), depth0))
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Illegal Downloads:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.dlm : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Illegal Drugs:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.drg : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Offensive Content:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.off : stack1), depth0))
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Political Content:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pol : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Proffesinoalism:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pro : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Violence:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.vio : stack1), depth0))
+    + "\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    User Generated:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span> \n        Blogs:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugb : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Content:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugc : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Comments\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugt : stack1), depth0))
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Dating: \n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugd : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Forums: \n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugf : stack1), depth0))
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Media:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugm : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Social: \n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugs : stack1), depth0))
+    + "\n    </div>\n  </div>\n</div>";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],36:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda;
 
-  return "<div class=\"row\">\n  <div class=\"col s12\">\n    <ul class=\"tabs\">\n      <li class=\"tab col s3\">\n        <a class=\"active\" href=\"#overview\">\n          <img class=\"ias-img\" src=\"./img/IAS-traq-score.png\"/>\n          <h6 class=\"center\">\n            Overview\n          </h1>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#brand-safety\">\n          <img class=\"ias-img\" src=\"./img/IAS-brand-safety.png\"/>\n          <h6 class=\"center\">\n            Brand Safety\n          </h1>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#ad-fraud\">\n          <img class=\"ias-img\" src=\"./img/IAS-ad-fraud.png\"/>\n          <h6 class=\"center\">\n            Ad Fraud\n          </h1>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#viewability\">\n          <img class=\"ias-img\" src=\"./img/IAS-viewability.png\"/>\n          <h6 class=\"center\">\n            Visibility\n          </h1>\n        </a>\n      </li>\n    </ul>\n  </div>\n</div>\n\n<div id=\"overview\" class=\"col s12\">\n  <ul>\n    <li class=\"left-align\">\n        Site: "
+  return "<div class=\"row pub-score-section\">\n  <p>\n    Site:\n  </p>\n  <div class=\"pub-score-item\">\n    "
     + alias4(((helper = (helper = helpers.si || (depth0 != null ? depth0.si : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"si","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    <li class=\"left-align\">\n        AD Entity ID: 1\n    </li>\n    <li class=\"left-align\">\n        TRAQ: "
+    + "\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Measurements:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        TRAQ:\n      </span> \n      "
     + alias4(((helper = (helper = helpers.traq || (depth0 != null ? depth0.traq : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"traq","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Clutter: "
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Clutter:\n      </span>\n      "
     + alias4(((helper = (helper = helpers.clu || (depth0 != null ? depth0.clu : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"clu","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Designated Market Area: "
-    + alias4(((helper = (helper = helpers.dma || (depth0 != null ? depth0.dma : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"dma","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    \n    <li class=\"left-align\">\n      Location: "
-    + alias4(((helper = (helper = helpers.country || (depth0 != null ? depth0.country : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"country","hash":{},"data":data}) : helper)))
-    + ", "
-    + alias4(((helper = (helper = helpers.state || (depth0 != null ? depth0.state : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"state","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    \n    <li class=\"left-align\">\n      Avg Page Ad Count: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pac : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Clutter Rating: "
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Clutter Rating:\n      </span>\n      "
     + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.par : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Avg Time User on Page: "
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        DMA:\n      </span>\n      "
+    + alias4(((helper = (helper = helpers.dma || (depth0 != null ? depth0.dma : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"dma","hash":{},"data":data}) : helper)))
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        Avg Ad Count:\n      </span>\n      "
+    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pac : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Avg Page Time:\n      </span>\n      "
     + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.top : stack1), depth0))
-    + "\n    </li>\n\n  </ul>\n</div>\n\n<div id=\"brand-safety\" class=\"col s12\">\n  <ul>\n    <li class=\"left-align\">\n      Adult Content: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.adt : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Alcohol: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.alc : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Auto Refresh: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.arf : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Failure Catagories: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.fcs : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Hate Speech: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.hat : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Illegal Downloads: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.dlm : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Illegal Drugs: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.drg : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      IAB - Contextual Catagories: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iab1 : stack1), depth0))
-    + " and "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iab2 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Offensive Language: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.off : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Political Content: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pol : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Proffesinoalism: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.pro : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Violence: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.vio : stack1), depth0))
-    + "\n    </li>\n    <li>\n    <li class=\"left-align\">\n      User Generated Blogs: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugb : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Content: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugc : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Dating: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugd : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Forums: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugf : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Media: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugm : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Social: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugs : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      User Generated Comments: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ugt : stack1), depth0))
-    + "\n    </li>\n  </ul>\n</div>\n\n<div id=\"ad-fraud\" class=\"col s12\">\n  <ul>\n    <li class=\"left-align\">\n       Risk: "
-    + alias4(((helper = (helper = helpers.risk || (depth0 != null ? depth0.risk : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"risk","hash":{},"data":data}) : helper)))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Realtime Suspicios Activity: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.rsa : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Suspicios Activity/Fraud Metric: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.sam : stack1), depth0))
-    + "\n    </li>\n  </ul>\n</div>\n\n<div id=\"viewability\" class=\"col s12\">\n  <ul>\n    <li class=\"left-align\">\n      Page Load Viewability: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Page Load Viewabilty 160x600: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_160x600 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Page Load Viewabilty 300x250: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_300x250 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Page Load Viewabilty 728x90: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_728x90 : stack1), depth0))
-    + "\n    </li>\n\n    <li class=\"left-align\">\n      Viewability > 1 sec: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv1 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Viewability > 2 sec: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv2 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Viewability > 3 sec: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv3 : stack1), depth0))
-    + "\n    </li>\n    \n    <li class=\"left-align\">\n      Viewability > 5 sec: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Viewability > 5 sec 160x600: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_160x600 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Viewability > 5 sec 300x250: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_300x250 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Viewability > 5 sec 728x90: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_728x90 : stack1), depth0))
-    + "\n    </li>\n\n    <li class=\"left-align\">\n      IAB - Viewabilty: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      IAB - Viewabilty 160x600: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_160x600 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      IAB - Viewabilty 300x250: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_300x250 : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      IAB - Viewabilty 728x90: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_728x90 : stack1), depth0))
-    + "\n    </li>\n\n    <li class=\"left-align\">\n      Time in View: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivt : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      In View User Leaves: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivu : stack1), depth0))
-    + "\n    </li>\n    <li class=\"left-align\">\n      Not in view: "
-    + alias4(alias5(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.niv : stack1), depth0))
-    + "\n    </li>\n\n  </ul>\n</div>";
+    + "\n    </div>\n  </div>\n</div>";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],35:[function(require,module,exports){
+},{"hbsfy/runtime":22}],37:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    return "<div class=\"row\">\n  <div class=\"col s12\">\n    <ul class=\"tabs\">\n      <li class=\"tab col s3\">\n        <a class=\"active\" href=\"#overview\">\n          <img class=\"ias-img\" src=\"./img/IAS-traq-score.png\"/>\n          <h6 class=\"center\">\n            Overview\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#brand-safety\">\n          <img class=\"ias-img\" src=\"./img/IAS-brand-safety.png\"/>\n          <h6 class=\"center\">\n            Brand Safety\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#ad-fraud\">\n          <img class=\"ias-img\" src=\"./img/IAS-ad-fraud.png\"/>\n          <h6 class=\"center\">\n            Ad Fraud\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#viewability\">\n          <img class=\"ias-img\" src=\"./img/IAS-viewability.png\"/>\n          <h6 class=\"center\">\n            Viewability\n          </h6>\n        </a>\n      </li>\n    </ul>\n  </div>\n</div>\n\n<div id=\"overview\" class=\"col s12\"></div>\n<div id=\"brand-safety\" class=\"col s12\"></div>\n<div id=\"ad-fraud\" class=\"col s12\"></div>\n<div id=\"viewability\" class=\"col s12\"></div>\n";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],38:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression;
+
+  return "<div class=\"row pub-score-section\">\n  <p>\n    Page Load Viewability:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        All Sizes:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        160x600:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_160x600 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        300x250:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_300x250 : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        728x90:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_728x90 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Viewability Over:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        1 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv1 : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        3 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv3 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        2 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv2 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Viewability Over:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 160x600:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_160x600 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 300x250:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_300x250 : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 728x90:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_728x90 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    IAB - Viewabilty:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        All Sizes:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        160x600:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_160x600 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        300x250:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_300x250 : stack1), depth0))
+    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        728x90:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_728x90 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Standard Catagories:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Time In View:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivt : stack1), depth0))
+    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        In View Page Exit:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivu : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Not In View:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.niv : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],39:[function(require,module,exports){
 var Entities = {},
     Backbone = require('backbone'),
     BrowserActionApp = require('../app');
@@ -1466,7 +1537,7 @@ var Entities = {},
     return API.getPubScoreEntity(pubUrl);
   });
 
-},{"../app":26,"backbone":2}],36:[function(require,module,exports){
+},{"../app":26,"backbone":2}],40:[function(require,module,exports){
 var $ = require('jquery'),
     BrowserActionApp = require('./app');
 
@@ -1476,4 +1547,4 @@ require('./apps/pub-scores/pub_score_app');
 
 BrowserActionApp.start();
 
-},{"./app":26,"./apps/header/header_app":27,"./apps/pub-scores/pub_score_app":31,"./entities/pub_score.js":35,"jquery":23}]},{},[36]);
+},{"./app":26,"./apps/header/header_app":27,"./apps/pub-scores/pub_score_app":31,"./entities/pub_score.js":39,"jquery":23}]},{},[40]);

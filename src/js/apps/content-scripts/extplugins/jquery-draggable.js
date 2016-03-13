@@ -2,7 +2,9 @@
  * @module addons
  */
 
-var $ = require('jquery');
+var $el,
+    $drag,
+    $ = require('jquery');
 
 
 // drags() will be exposed on the $ object.
@@ -14,16 +16,16 @@ $.fn.drags = function(opt) {
     }, opt);
 
     if (opt.handle === "") {
-        var $el = this;
+        $el = this;
     } else {
-        var $el = this.find(opt.handle);
+        $el = this.find(opt.handle);
     }
 
     return $el.css('cursor', opt.cursor).on("mousedown", function(e) {
         if (opt.handle === "") {
-            var $drag = $(this).addClass('draggable');
+            $drag = $(this).addClass('draggable');
         } else {
-            var $drag = $(this).addClass('active-handle').parent().addClass('draggable');
+            $drag = $(this).addClass('active-handle').parent().addClass('draggable');
         }
         var z_idx = $drag.css('z-index'),
             drg_h = $drag.outerHeight(),
@@ -46,5 +48,6 @@ $.fn.drags = function(opt) {
             $(this).removeClass('active-handle').parent().removeClass('draggable');
         }
     });
-}
+};
+
 module.export = $;

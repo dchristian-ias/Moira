@@ -1,12 +1,13 @@
 @import './layout/colors';
 @import './layout/fonts';
 @import './layout/global';
+@import './modules/pub_score';
 @import './vendor/materialize';
 
 body {
   font-family: $font-stack;
   min-height: 700px;
-  min-width: 475px;
+  min-width: 480px;
 }
 
 a, a:hover, a:focus {
