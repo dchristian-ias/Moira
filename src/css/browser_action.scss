@@ -2,6 +2,7 @@
 @import './layout/fonts';
 @import './layout/global';
 @import './modules/pub_score';
+@import './modules/ias_tags';
 @import './vendor/materialize';
 
 body {
@@ -40,6 +41,10 @@ a, a:hover, a:focus {
   & h6 {
     font-size: .8rem;
   }
+}
 
+.highlight {
+  background-color: red;
+  opacity: .5;
 }
 

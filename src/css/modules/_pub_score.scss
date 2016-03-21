@@ -1,7 +1,10 @@
 .pub-score-section {
+  font-size: .8rem;
   & .pub-score-item {
-    font-size: .8rem;
     margin-bottom: 5px;
+  }
+  & .pub-score-item-viewability {
+    margin-top: 10px;
   }
   & p {
     color: $secondary-color;

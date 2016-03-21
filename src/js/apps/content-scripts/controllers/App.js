@@ -1,7 +1,7 @@
-/**
+/** 
  * @module App
  */
-
+ 
 var Marionette = require('backbone.marionette');
 var $ = require('jquery');
 var AppLayout = require('../views/AppLayout');

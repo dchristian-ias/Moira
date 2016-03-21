@@ -30,7 +30,7 @@ var BrowserActionApp = require('../../../app'),
              * all of the subviews in the Pub Score Layout,
              * these sub views contain content for each tabs displayed
              */  
-            BrowserActionApp.regions.main.show(pubScoreLayout);
+            BrowserActionApp.regions.pubScores.show(pubScoreLayout);
             pubScoreLayout.overview.show(overviewView);
             pubScoreLayout.brandSafety.show(brandSafetyView);
             pubScoreLayout.adFraud.show(adFraudView);

@@ -8,8 +8,8 @@ var $ = require('jquery'),
     el: "#app-container",
     regions: {
       header: "#header-region",
-      main: "#main-region",
-      dialog: "#dialog-region"
+      iasTags: "#ias-tags-region",
+      pubScores: "#pub-scores-region"
     }
   });
     

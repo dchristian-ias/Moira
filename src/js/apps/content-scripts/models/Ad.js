@@ -14,7 +14,6 @@ var DetectionResults = require('./DetectionResults');
  *  @param {object} options - Contains initial Ad data and postMessage source.
  *  @returns {constructor} - Marionette Object Constructor.
  */
- // newBundle
 var Ad = Backbone.Model.extend({
     defaults:{
         viewState:'na',

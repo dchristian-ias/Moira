@@ -9,7 +9,6 @@ var Entities = {},
   Entities.PubScore = Backbone.Model.extend({
     sync: function(method, model, options) {
       var config;
-
       if(method === "read") {
         config = {
           method: "GET",

@@ -1,8 +1,10 @@
-var Marionette = require('backbone.marionette');
+var Marionette = require('backbone.marionette'),
+    networkCallViewTmplt = require('./templates/network_call_view.hbs'),
+    networkCallCompositeTmlpt = require('./templates/network_call_composite.hbs');
 
 var NetworkCallItemView = Marionette.ItemView.extend({
     tagName:'tr',
-    template:require('../views/templates').networkCallView,
+    template: networkCallViewTmplt,
     templateHelpers:function(){
         var callType, pingTime;
         var lookup = {
@@ -10,6 +12,7 @@ var NetworkCallItemView = Marionette.ItemView.extend({
             'b':"Diagnostic information",
             'i':"Presence of third party",
             'l':"Ad Billable because of size",
+            // 'v':"Full complement of video events",
             'p':"In View to MRC spec",
             'pf':"Ad is fully in view",
             'qf':"Fully in view at quartile",
@@ -38,7 +41,7 @@ var NetworkCallItemView = Marionette.ItemView.extend({
 
 var NetworkCallCompositeView = Marionette.CompositeView.extend({
     tagName:'table',
-    template:require('../views/templates').networkCallComposite,
+    template: networkCallCompositeTmlpt,
     childView:NetworkCallItemView,
     childViewContainer:'tbody'
 });

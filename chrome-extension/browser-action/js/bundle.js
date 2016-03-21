@@ -1206,53 +1206,162 @@ var $ = require('jquery'),
     el: "#app-container",
     regions: {
       header: "#header-region",
-      main: "#main-region",
-      dialog: "#dialog-region"
+      iasTags: "#ias-tags-region",
+      pubScores: "#pub-scores-region"
     }
   });
     
   BrowserActionApp.regions = new RegionContainer();
 
   module.exports = BrowserActionApp;
+
 },{"backbone":2,"backbone.marionette":1,"jquery":23,"materialize-js":24}],27:[function(require,module,exports){
 var ShowController = require('./show/show_controller');
 
-    ShowController.showHeader();
+  ShowController.showIasTags();
+
 },{"./show/show_controller":28}],28:[function(require,module,exports){
-var BrowserActionApp = require('../../../app'),
-    Show = require('./show_view'),
+var Show = require('./show_view'),
+    BrowserActionApp = require('../../../app'),
     
     /**
-     * Define the API interface for the Header's Show Controller
+     * Define the API interface for the IAS Tag's Show Controller
      */
     Controller = {
-      showHeader: function() {
-        var headerView = new Show.Header();
-          BrowserActionApp.regions.header.show(headerView);
+      showIasTags: function() {
+        var iasTagsLayout,
+            fetchingIasTags = BrowserActionApp.request('iasTag:entities');
+
+        $.when(fetchingIasTags)
+        .done(function(iasTags) {
+          iasTagsLayout = new Show.IasTagsLayout();
+          iasTagsContainer = new Show.IasTagsContainer({collection: iasTags});
+          BrowserActionApp.regions.iasTags.show(iasTagsLayout);
+          iasTagsLayout.tagsContainer.show(iasTagsContainer);
+        });
       }
     };
 
 module.exports = Controller;
 },{"../../../app":26,"./show_view":29}],29:[function(require,module,exports){
 var Show = {},
+    $ = require('jquery'),
     Marionette = require('backbone.marionette'),
-    HeaderTmplt = require('./templates/header.hbs');
+    dtCallsTmplt = require('./templates/dt_calls.hbs'),
+    iasTagTmplt = require('./templates/ias_tag.hbs'),
+    iasTagsLayoutTmplt = require('./templates/ias_tags_layout.hbs');
 
-  Show.Header = Marionette.ItemView.extend({
-    template: HeaderTmplt
-  });
+    Show.DtCalls = Marionette.ItemView.extend({
+      template: dtCallsTmplt,
+      className: 'dt-call-container z-depth-1',
+    });
 
-  module.exports = Show;
+    Show.IasTagsLayout = Marionette.LayoutView.extend({
+      template: iasTagsLayoutTmplt,
+      regions: {
+        tagsContainer: "#tags-container"
+      }
+    });
 
-  
-},{"./templates/header.hbs":30,"backbone.marionette":1}],30:[function(require,module,exports){
+    Show.IasTag = Marionette.LayoutView.extend({
+      
+      template: iasTagTmplt,
+      
+      className: 'ias-tag-container',
+
+      regions: {
+        dtCalls: '#dt-calls-container'
+      },
+
+      events: {
+        "click .ias-ad-outline": "setHighlighting",
+        "mouseover .ias-ad-outline": "showDtCalls",
+        "mouseout .ias-ad-outline": "hideDtCalls"
+      },
+
+      onRender: function() {
+        var dtCalls = new Show.DtCalls({ model: this.model });
+        this.dtCalls.show(dtCalls);
+      },
+      
+      setHighlighting: function() {
+        var self = this,
+            isHighlighted = self.model.get('isHighlighted'),
+            toggleHiglight = {
+              channel: 'FirewallJSAction',
+              asid: self.model.get('asid'),
+              data: { action: 'highlightContainer', enable: !isHighlighted } 
+            };
+
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          chrome.tabs.sendMessage(tabs[0].id, toggleHiglight);
+          chrome.tabs.sendMessage(tabs[0].id, {action: 'scroll', yCoordinates: self.model.get('adCoordinates').y});
+          self.$('.ias-ad-outline').toggleClass('highlight');
+          self.model.set('isHighlighted', !isHighlighted);
+        });
+
+      },
+
+      showDtCalls: function() {
+        this.$('.dt-call-container').show();
+        console.log("showDtCalls");
+      },
+
+      hideDtCalls: function() {
+        this.$('.dt-call-container').hide();
+        console.log("hideDtCalls");
+      }
+
+    });
+
+    Show.IasTagsContainer = Marionette.CollectionView.extend({
+      childView: Show.IasTag
+    });
+
+   module.exports = Show;
+
+},{"./templates/dt_calls.hbs":30,"./templates/ias_tag.hbs":31,"./templates/ias_tags_layout.hbs":32,"backbone.marionette":1,"jquery":23}],30:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    return "<div class=\"header center\">\n  <h1>\n    Site Diagnostics\n  </h1>\n</div>";
+    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    Time In View:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.timInView || (depth0 != null ? depth0.timInView : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"timInView","hash":{},"data":data}) : helper)))
+    + "sec\n  </div>\n</div>\n\n<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    % In View:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.percentInView || (depth0 != null ? depth0.percentInView : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"percentInView","hash":{},"data":data}) : helper)))
+    + "\n  </div>\n</div>\n\n<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    Obstructed:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.obstructed || (depth0 != null ? depth0.obstructed : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"obstructed","hash":{},"data":data}) : helper)))
+    + "\n  </div>\n</div>\n\n<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    Tab Hidden:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.tabHidden || (depth0 != null ? depth0.tabHidden : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"tabHidden","hash":{},"data":data}) : helper)))
+    + "\n  </div>\n</div>\n\n<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    View State:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.viewState || (depth0 != null ? depth0.viewState : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"viewState","hash":{},"data":data}) : helper)))
+    + "\n  </div>\n</div>\n\n<div class=\"row dt-call-row\">\n  <div class=\"col s6 primary-font-medium\">\n    Reason:\n  </div>\n  <div class=\"col s3\">\n    "
+    + alias4(((helper = (helper = helpers.reason || (depth0 != null ? depth0.reason : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"reason","hash":{},"data":data}) : helper)))
+    + "\n  </div>\n</div>\n\n";
 },"useData":true});
 
 },{"hbsfy/runtime":22}],31:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+  return "<div id=\"dt-calls-container\"></div>\n<div class=\"ias-ad-outline\"></div>\n<div class=\"center\">\n  "
+    + alias4(((helper = (helper = helpers.width || (depth0 != null ? depth0.width : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"width","hash":{},"data":data}) : helper)))
+    + "x"
+    + alias4(((helper = (helper = helpers.height || (depth0 != null ? depth0.height : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"height","hash":{},"data":data}) : helper)))
+    + "\n</div>\n\n";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],32:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
+    return "<div class=\"header center\">\n  <h1>\n    IAS Tag Diagnostics\n  </h1>\n</div>\n<div id=\"tags-container\"></div>";
+},"useData":true});
+
+},{"hbsfy/runtime":22}],33:[function(require,module,exports){
 var ShowController = require('./show/show_controller');
 
     /**
@@ -1263,7 +1372,7 @@ var ShowController = require('./show/show_controller');
       ShowController.showPubScore(tab.url);
     });
 
-},{"./show/show_controller":32}],32:[function(require,module,exports){
+},{"./show/show_controller":34}],34:[function(require,module,exports){
 var BrowserActionApp = require('../../../app'),
     Show = require('./show_view'),
     
@@ -1296,7 +1405,7 @@ var BrowserActionApp = require('../../../app'),
              * all of the subviews in the Pub Score Layout,
              * these sub views contain content for each tabs displayed
              */  
-            BrowserActionApp.regions.main.show(pubScoreLayout);
+            BrowserActionApp.regions.pubScores.show(pubScoreLayout);
             pubScoreLayout.overview.show(overviewView);
             pubScoreLayout.brandSafety.show(brandSafetyView);
             pubScoreLayout.adFraud.show(adFraudView);
@@ -1308,7 +1417,7 @@ var BrowserActionApp = require('../../../app'),
     };
 
 module.exports = Controller;
-},{"../../../app":26,"./show_view":33}],33:[function(require,module,exports){
+},{"../../../app":26,"./show_view":35}],35:[function(require,module,exports){
 var Show = {},
     $ = require('jquery'),
     Marionette = require('backbone.marionette'),
@@ -1355,7 +1464,7 @@ var Show = {},
 
    module.exports = Show;
 
-},{"./templates/ad_fraud.hbs":34,"./templates/brand_safety.hbs":35,"./templates/overview.hbs":36,"./templates/pub_scores.hbs":37,"./templates/viewability.hbs":38,"backbone.marionette":1,"jquery":23}],34:[function(require,module,exports){
+},{"./templates/ad_fraud.hbs":36,"./templates/brand_safety.hbs":37,"./templates/overview.hbs":38,"./templates/pub_scores.hbs":39,"./templates/viewability.hbs":40,"backbone.marionette":1,"jquery":23}],36:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
@@ -1370,7 +1479,7 @@ module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":f
     + "\n    </div>\n  </div>\n</div>";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],35:[function(require,module,exports){
+},{"hbsfy/runtime":22}],37:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
@@ -1413,15 +1522,13 @@ module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":f
     + "\n    </div>\n  </div>\n</div>";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],36:[function(require,module,exports){
+},{"hbsfy/runtime":22}],38:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda;
 
-  return "<div class=\"row pub-score-section\">\n  <p>\n    Site:\n  </p>\n  <div class=\"pub-score-item\">\n    "
-    + alias4(((helper = (helper = helpers.si || (depth0 != null ? depth0.si : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"si","hash":{},"data":data}) : helper)))
-    + "\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Measurements:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        TRAQ:\n      </span> \n      "
+  return "<div class=\"row pub-score-section\">\n  <p>\n    Measurements:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item\">\n      <span>\n        TRAQ:\n      </span> \n      "
     + alias4(((helper = (helper = helpers.traq || (depth0 != null ? depth0.traq : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"traq","hash":{},"data":data}) : helper)))
     + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        Clutter:\n      </span>\n      "
     + alias4(((helper = (helper = helpers.clu || (depth0 != null ? depth0.clu : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"clu","hash":{},"data":data}) : helper)))
@@ -1436,59 +1543,200 @@ module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":f
     + "\n    </div>\n  </div>\n</div>";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],37:[function(require,module,exports){
+},{"hbsfy/runtime":22}],39:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    return "<div class=\"row\">\n  <div class=\"col s12\">\n    <ul class=\"tabs\">\n      <li class=\"tab col s3\">\n        <a class=\"active\" href=\"#overview\">\n          <img class=\"ias-img\" src=\"./img/IAS-traq-score.png\"/>\n          <h6 class=\"center\">\n            Overview\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#brand-safety\">\n          <img class=\"ias-img\" src=\"./img/IAS-brand-safety.png\"/>\n          <h6 class=\"center\">\n            Brand Safety\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#ad-fraud\">\n          <img class=\"ias-img\" src=\"./img/IAS-ad-fraud.png\"/>\n          <h6 class=\"center\">\n            Ad Fraud\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#viewability\">\n          <img class=\"ias-img\" src=\"./img/IAS-viewability.png\"/>\n          <h6 class=\"center\">\n            Viewability\n          </h6>\n        </a>\n      </li>\n    </ul>\n  </div>\n</div>\n\n<div id=\"overview\" class=\"col s12\"></div>\n<div id=\"brand-safety\" class=\"col s12\"></div>\n<div id=\"ad-fraud\" class=\"col s12\"></div>\n<div id=\"viewability\" class=\"col s12\"></div>\n";
+    return "<div class=\"header center\">\n  <h1>\n    Publisher Scores\n  </h1>\n</div>\n<div class=\"row\">\n  <div class=\"col s12\">\n    <ul class=\"tabs\">\n      <li class=\"tab col s3\">\n        <a class=\"active\" href=\"#overview\">\n          <img class=\"ias-img\" src=\"./img/IAS-traq-score.png\"/>\n          <h6 class=\"center\">\n            Overview\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#brand-safety\">\n          <img class=\"ias-img\" src=\"./img/IAS-brand-safety.png\"/>\n          <h6 class=\"center\">\n            Brand Safety\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#ad-fraud\">\n          <img class=\"ias-img\" src=\"./img/IAS-ad-fraud.png\"/>\n          <h6 class=\"center\">\n            Ad Fraud\n          </h6>\n        </a>\n      </li>\n      <li class=\"tab col s3\">\n        <a href=\"#viewability\">\n          <img class=\"ias-img\" src=\"./img/IAS-viewability.png\"/>\n          <h6 class=\"center\">\n            Viewability\n          </h6>\n        </a>\n      </li>\n    </ul>\n  </div>\n</div>\n\n<div id=\"overview\" class=\"col s12\"></div>\n<div id=\"brand-safety\" class=\"col s12\"></div>\n<div id=\"ad-fraud\" class=\"col s12\"></div>\n<div id=\"viewability\" class=\"col s12\"></div>\n";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],38:[function(require,module,exports){
+},{"hbsfy/runtime":22}],40:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression;
 
-  return "<div class=\"row pub-score-section\">\n  <p>\n    Page Load Viewability:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        All Sizes:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        160x600:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_160x600 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        300x250:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_300x250 : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        728x90:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_728x90 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Viewability Over:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        1 sec:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv1 : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        3 sec:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv3 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        2 sec:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv2 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Viewability Over:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 160x600:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_160x600 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 300x250:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_300x250 : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        5 sec 728x90:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_728x90 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    IAB - Viewabilty:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        All Sizes:\n      </span>\n      "
+  return "<div class=\"row pub-score-section\">\n  <p>\n    IAB - Viewabilty: "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        160x600:\n      </span>\n      "
+    + "%\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        160x600:\n      </span>\n      "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_160x600 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        300x250:\n      </span>\n      "
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        300x250:\n      </span>\n      "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_300x250 : stack1), depth0))
-    + "%\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        728x90:\n      </span>\n      "
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        728x90:\n      </span>\n      "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iviab_728x90 : stack1), depth0))
-    + "%\n    </div>\n  </div>\n</div>\n<div class=\"row pub-score-section\">\n  <p>\n    Standard Catagories:\n  </p>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Time In View:\n      </span>\n      "
+    + "%\n    </div>\n  </div>\n</div>\n\n<div class=\"row pub-score-section viewability\">\n  <p>\n    Page Load Viewability: "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl : stack1), depth0))
+    + "%\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        160x600:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_160x600 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        300x250:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_300x250 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        728x90:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivl_728x90 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n\n<div class=\"row pub-score-section viewability\">\n  <p>\n    Viewability Over 5sec: "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp : stack1), depth0))
+    + "%\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        160x600:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_160x600 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        300x250:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_300x250 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        728x90:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivp_728x90 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n\n<div class=\"row pub-score-section viewability\">\n  <p>\n    Viewability Over:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        1 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv1 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        2 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv2 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        3 sec:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.iv3 : stack1), depth0))
+    + "%\n    </div>\n  </div>\n</div>\n\n<div class=\"row pub-score-section viewability\">\n  <p>\n    Standard Catagories:\n  </p>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        Time In View:\n      </span>\n      "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivt : stack1), depth0))
-    + "\n    </div>\n    <div class=\"pub-score-item\">\n      <span>\n        In View Page Exit:\n      </span>\n      "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivu : stack1), depth0))
-    + "%\n    </div>\n  </div>\n  <div class=\"col s6\">\n    <div class=\"pub-score-item\">\n      <span>\n        Not In View:\n      </span>\n      "
+    + "\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        Not In View:\n      </span>\n      "
     + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.niv : stack1), depth0))
+    + "%\n    </div>\n  </div>\n  <div class=\"col s4\">\n    <div class=\"pub-score-item-viewability\">\n      <span>\n        In View Page Exit:\n      </span>\n      "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.scores : depth0)) != null ? stack1.ivu : stack1), depth0))
     + "%\n    </div>\n  </div>\n</div>\n";
 },"useData":true});
 
-},{"hbsfy/runtime":22}],39:[function(require,module,exports){
+},{"hbsfy/runtime":22}],41:[function(require,module,exports){
+var Entities = {},
+    Backbone = require('backbone'),
+    BrowserActionApp = require('../app'),
+    ScreenEventCollection = require('./screen_event').ScreenEventCollection,
+    NetworkCallCollection = require('./network_call').NetworkCallCollection;
+
+/**
+ *  Respresents a unique IAS Tag
+ */
+  Entities.IasTag = Backbone.Model.extend({
+    
+    defaults: {
+      isHighlighted: false
+    },
+
+    initialize: function(options) {
+      var data,
+          self = this,
+          screenEvent,
+          networkCall;
+      
+      this.set({
+        asid: options.asid,
+        models: {
+          networkCallCollection: new NetworkCallCollection(options.calls.networkCalls),
+          screenEventCollection: new ScreenEventCollection(options.calls.screenEvents)
+        }
+      });
+      /**
+       * Set the lastest Screen Event's model properties
+       * directly onto the IAS Tag
+       */
+      if (this.get('models') && this.get('models').screenEventCollection) {
+        screenEvent = this.get('models').screenEventCollection.last();
+        if (screenEvent) {
+          this.set({
+            width: screenEvent.get('data').width,
+            height: screenEvent.get('data').height,
+            reason: screenEvent.get('data').reason,
+            tabHidden: screenEvent.get('data').tabHidden,
+            obstructed: screenEvent.get('data').obstructed,
+            adCoordinates: screenEvent.get('adCoordinates'),
+            percentInView: screenEvent.get('data').percentInView
+          });
+        }
+      }
+
+      /**
+       * Set the lastest Network Call's model properties
+       * directly onto the IAS Tag
+       */
+      if (this.get('models') && this.get('models').networkCallCollection) {
+        networkCall = this.get('models').networkCallCollection.last();
+        console.log('networkCall');
+        console.log(networkCall);
+        if (networkCall.get('data').callType === 'p') {
+          this.set({
+            timInView: networkCall.get('data').pingTime,
+          });
+        }
+      }
+
+      console.log(this);
+
+      // /**
+      //  * Set the lastest Network Call's model properties
+      //  * directly onto the IAS Tag
+      //  */
+      // if (this.get('models') && this.get('models').screenEventCollection) {
+      //   screenEvent = this.get('models').screenEventCollection.last();
+      //   screenEventAttrs = Object.keys(screenEvent);
+      //   screenEventAttrs.forEach(function(key) {
+      //     self.set(screenEvent, screenEvent[key]);
+      //   });
+      // }
+    }
+
+  });
+  /**
+   *  Respresents an IAS Tag collection
+   */
+  Entities.IasTagCollection = Backbone.Collection.extend({
+    model: Entities.IasTag
+  });
+  /**
+   * Set API interface for handling app request events
+   */
+  var API = {
+   getIasTagEntities: function() {
+    var iasTagCollection,
+        iasTagModels = [],
+        defer = $.Deferred();
+      
+      chrome.runtime.getBackgroundPage(function(BackgroundPageWindow) {
+        var iasTags = BackgroundPageWindow.IasTags,
+            iasTagNames = Object.keys(iasTags); 
+
+        iasTagNames.forEach(function(asid) {
+          var tag = iasTags[asid];
+          iasTagModels.push(new Entities.IasTag({
+            asid: asid,
+            calls: tag
+          }));
+        });
+        
+        iasTagCollection = new Entities.IasTagCollection(iasTagModels);        
+        defer.resolve(iasTagCollection);
+      });
+      return defer.promise();
+    },
+    getIasTagEntity: function() {
+      var iasTag = new Entities.IasTag();
+      return iasTag;
+    }
+  };
+  /**
+   * Set event handler for pubScore:entity request
+   */
+  BrowserActionApp.reqres.setHandler("iasTag:entities", function() {
+    return API.getIasTagEntities();
+  });
+  BrowserActionApp.reqres.setHandler("iasTag:entity", function() {
+    return API.getIasTagEntity();
+  });
+
+  module.exports = Entities;
+
+},{"../app":26,"./network_call":42,"./screen_event":44,"backbone":2}],42:[function(require,module,exports){
+var Entities = {},
+    Backbone = require('backbone'),
+    BrowserActionApp = require('../app');
+
+  Entities.NetworkCall = Backbone.Model.extend({});
+
+  Entities.NetworkCallCollection = Backbone.Collection.extend({
+    model: Entities.NetworkCall
+  });
+ 
+module.exports = Entities;
+
+},{"../app":26,"backbone":2}],43:[function(require,module,exports){
 var Entities = {},
     Backbone = require('backbone'),
     BrowserActionApp = require('../app');
@@ -1500,7 +1748,6 @@ var Entities = {},
   Entities.PubScore = Backbone.Model.extend({
     sync: function(method, model, options) {
       var config;
-
       if(method === "read") {
         config = {
           method: "GET",
@@ -1537,14 +1784,78 @@ var Entities = {},
     return API.getPubScoreEntity(pubUrl);
   });
 
-},{"../app":26,"backbone":2}],40:[function(require,module,exports){
-var $ = require('jquery'),
-    BrowserActionApp = require('./app');
+},{"../app":26,"backbone":2}],44:[function(require,module,exports){
+var Entities = {},
+    Backbone = require('backbone'),
+    BrowserActionApp = require('../app'),
 
+    /**
+     * Temporary Method, assuming we will be able to pull this
+     * directly from ScreenEvent in future
+     */
+    getAdCoordinates = function(options) {
+      var screenEventDetailsVals,
+          adCoordinateVals, screenEvents = {},
+          seKey, seValue, screenEventVals, adCoordinates,
+          screenEventDetails = options.data && options.data.details;
+
+      if (screenEventDetails) {
+
+        screenEventDetailsVals = _.compact(screenEventDetails.split(','));
+
+        _.each(screenEventDetailsVals, function(val) {
+          screenEventVals = val.split(':');
+          seKey = screenEventVals[0];
+          seValue = screenEventVals[1];
+          screenEvents[seKey] = seValue;
+        });
+        
+        adCoordinates = screenEvents.ac;
+        adCoordinateVals = adCoordinates.split('.');
+       
+        return {
+          x: adCoordinateVals[0],
+          y: adCoordinateVals[1],
+          width: adCoordinateVals[2],
+          height: adCoordinateVals[3]
+        };
+      }
+    };
+
+    Entities.ScreenEvent = Backbone.Model.extend({
+      initialize: function(options) {
+        /**
+         * Retrieve the Ad Coordinates from the screen event's
+         * 'detail' property. It's a string that needs to be serialized,
+         * this is a temporary method, assuming we can send this data
+         * directly on the event object in the future.. 
+         */
+        this.set('adCoordinates', getAdCoordinates(options));
+      }
+    });
+
+    Entities.ScreenEventCollection = Backbone.Collection.extend({
+      model: Entities.ScreenEvent
+    });
+  
+  module.exports = Entities;
+
+},{"../app":26,"backbone":2}],45:[function(require,module,exports){
+/**
+ * App Init
+ * Main entry point for Browserify
+ */
+var BrowserActionApp = require('./app');
+
+require('./entities/ias_tag.js');
 require('./entities/pub_score.js');
-require('./apps/header/header_app');
-require('./apps/pub-scores/pub_score_app');
+require('./entities/network_call.js');
+require('./entities/screen_event.js');
+
+require('./apps/ias-tags/ias_tags_app');
+require('./apps/pub-scores/pub_scores_app');
+
 
 BrowserActionApp.start();
 
-},{"./app":26,"./apps/header/header_app":27,"./apps/pub-scores/pub_score_app":31,"./entities/pub_score.js":39,"jquery":23}]},{},[40]);
+},{"./app":26,"./apps/ias-tags/ias_tags_app":27,"./apps/pub-scores/pub_scores_app":33,"./entities/ias_tag.js":41,"./entities/network_call.js":42,"./entities/pub_score.js":43,"./entities/screen_event.js":44}]},{},[45]);

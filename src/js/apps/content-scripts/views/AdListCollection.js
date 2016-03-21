@@ -1,10 +1,11 @@
-var Marionette = require('backbone.marionette');
-var NetworkCallComposite = require('../views/NetworkCallComposite');
+var Marionette = require('backbone.marionette'),
+    NetworkCallComposite = require('../views/NetworkCallComposite'),
+    smallAdViewTmplt = require('./templates/small_ad_view.hbs');
 
 var SmallAdView = Marionette.LayoutView.extend({
     tagName:'li',
     className:'na',
-    template:require('../views/templates').smallAdView,
+    template: smallAdViewTmplt,
     modelEvents:{
         'change:viewState':'updateDisplay',
         'change:highlighted':'setHighlighting',
@@ -33,7 +34,6 @@ var SmallAdView = Marionette.LayoutView.extend({
     },
     setHighlighting:function(){
         var model = this.model;
-        console.log("postSource");
         if(model.postSource) {
             model.postSource.postMessage(JSON.stringify({
                 channel: 'FirewallJSAction',

@@ -10,7 +10,6 @@
       "content-scripts/css/main.css"
     ],
     "js":[
-      "content-scripts/js/Bootstrapper.js",
       "content-scripts/js/bundle.js"
     ]
   }],

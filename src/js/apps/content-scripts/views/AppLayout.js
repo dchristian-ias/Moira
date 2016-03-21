@@ -1,13 +1,14 @@
-/**
+/** 
  * @module AppLayout
  */
-
-var Marionette = require('backbone.marionette');
+var Marionette = require('backbone.marionette'),
+    mainContainerTmplt = require('./templates/main_container.hbs');
 
 var AppLayout = Marionette.LayoutView.extend({
 	tagName: 'div',
 	id:'dog-diagnostic-controller',
-	template: require('../views/templates').mainContainer,
+	className: 'main-container',
+	template: mainContainerTmplt,
 	regions:{adList:'#ads-found-container'},
 	onRender: function() {
 		this.$el.appendTo(document.body);

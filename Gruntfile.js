@@ -6,11 +6,15 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     browserify: {
       content_scripts: {
-        src: 'src/js/apps/content-scripts/app.js',
-        dest: 'chrome-extension/content-scripts/js/bundle.js'
+        src: 'src/js/apps/content-scripts/MainDog.js',
+        dest: 'chrome-extension/content-scripts/js/bundle.js',
+        options: {
+          extensions: ['.hbs'],
+          transform: ['hbsfy']
+        }
       },
       background: {
-        src: 'src/js/apps/background/app.js',
+        src: 'src/js/apps/background/main.js',
         dest: 'chrome-extension/background/js/bundle.js'
       },
       browser_action: {
@@ -29,7 +33,7 @@ module.exports = function(grunt) {
           noCache: true
         },
         files: {
-          'chrome-extension/content-scripts/css/main.css': 'src/css/main.scss',
+          'chrome-extension/content-scripts/css/main.css': 'src/css/content_script.scss',
           'chrome-extension/browser-action/css/main.css': 'src/css/browser_action.scss'
         }
       }
@@ -38,12 +42,14 @@ module.exports = function(grunt) {
       all: [
         'Gruntfile.js',
         'src/js/apps/background/*.js',
+        'src/js/apps/content-scripts/*.js',
+        'src/js/apps/content-scripts/*/*.js',
         'src/js/apps/browser-action/*.js',
         'src/js/apps/browser-action/*/*.js',
         'src/js/apps/browser-action/*/*/*.js',
         'src/js/apps/browser-action/*/*/*/*.js',
-        'src/js/apps/content-scripts/*.js',
-        'src/js/apps/content-scripts/*/*.js'
+        'src/js/apps/browser-action/*/*/*/*/*.js',
+        'src/js/apps/browser-action/*/*/*/*/*/*.js'
       ]
     }
   });

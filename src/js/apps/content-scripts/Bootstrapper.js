@@ -21,14 +21,14 @@
                 try {
                     window.postMessage(missedMessages[i].data, '*');
                 } catch (e) { }
-            };
+            }
         } else {
             forwardedEvt = evt.data;
             //TODO: Find a way to id the original source here in casenecesaary for highlighting relevant frame.SSSS
             // forwardedEvt.fromSource = evt.source;
             // forwardedEvt.isForwarded = true;
             missedMessages.push(evt);
-        };
+        }
     };
 
     window.addEventListener('message', capture);

@@ -1,32 +1,78 @@
+@font-face {
+  font-family: 'din-next-w01-light';
+  src: url("../fonts/din-next-w01-light.woff") format("woff"); }
+@font-face {
+  font-family: 'din-next-w01-medium';
+  src: url("../fonts/din-next-w01-medium.woff") format("woff"); }
+@font-face {
+  font-family: 'din-next-w01-bold';
+  src: url("../fonts/din-next-w01-bold.woff") format("woff"); }
+.primary-color {
+  color: #0096D6; }
+
+.secondary-color {
+  color: #f57b20; }
+
+.primary-font-light {
+  font-family: din-next-w01-light; }
+
+.primary-font-medium {
+  font-family: din-next-w01-medium; }
+
+.primary-font-bold {
+  font-family: din-next-w01-bold; }
+
+.ias-logo {
+  width: 36px;
+  height: 36px;
+  font-size: 29.4px;
+  border-radius: 50%;
+  line-height: 35px;
+  position: relative;
+  color: #0096D6;
+  border: 1px solid #0096D6; }
+  .ias-logo .integral {
+    position: absolute;
+    left: 11px; }
+  .ias-logo .integral-tilt {
+    opacity: .25;
+    position: absolute; }
+    .ias-logo .integral-tilt:nth-of-type(2) {
+      -webkit-transform: rotate(45deg); }
+    .ias-logo .integral-tilt:nth-of-type(3) {
+      -webkit-transform: rotate(90deg); }
+    .ias-logo .integral-tilt:nth-of-type(4) {
+      -webkit-transform: rotate(135deg); }
+
 /* ADS FOUND CONTAINER */
-#dog-diagnostic-controller {
+.main-container {
   position: fixed;
-  left: 10px;
+  left: 300px;
   bottom: 10px;
   z-index: 9999;
   padding: 25px;
   border-radius: 10px;
   background-color: rgba(234, 117, 37, 0.7); }
 
-#dog-diagnostic-controller h1 {
+.main-container h1 {
   font-size: 15px; }
 
-#dog-diagnostic-controller #ads-found-container .inView {
+.main-container #ads-found-container .inView {
   color: green; }
 
-#dog-diagnostic-controller #ads-found-container .partialViewPlus span {
+.main-container #ads-found-container .partialViewPlus span {
   color: lightgreen; }
 
-#dog-diagnostic-controller #ads-found-container .outOfView span {
+.main-container #ads-found-container .outOfView span {
   color: red; }
 
-#dog-diagnostic-controller #ads-found-container .partialViewMinus span {
+.main-container #ads-found-container .partialViewMinus span {
   color: hotpink; }
 
-#dog-diagnostic-controller .dt-calls {
+.main-container .dt-calls {
   display: none; }
 
-#dog-diagnostic-controller .small-ad-display li:hover .dt-calls {
+.main-container .small-ad-display li:hover .dt-calls {
   display: block;
   box-shadow: -4px 4px 2px #ccc;
   position: absolute;

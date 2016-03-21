@@ -1,7 +1,7 @@
-/**
+/** 
  * @module addons
  */
-
+ 
 var $el,
     $drag,
     $ = require('jquery');
@@ -49,5 +49,4 @@ $.fn.drags = function(opt) {
         }
     });
 };
-
 module.export = $;
